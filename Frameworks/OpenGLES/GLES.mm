@@ -748,6 +748,17 @@ EAGL_EXPORT void EXPORT_glTexSubImage2D(GLenum target,
 /**
    @Status Interoperable
 */
+EAGL_EXPORT void EXPORT_glTexStorage2DEXT(GLenum target,
+                                          GLsizei levels,
+										  GLenum internalFormat,
+										  GLsizei width,
+										  GLsizei height) {
+    glTexStorage2DEXT(target, levels, internalFormat, width, height);
+}
+
+/**
+   @Status Interoperable
+*/
 EAGL_EXPORT void EXPORT_glCompressedTexImage2D(GLenum target,
                                                GLint level,
                                                GLint internalformat,
