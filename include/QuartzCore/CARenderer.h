@@ -15,11 +15,11 @@
 //******************************************************************************
 #pragma cone
 
+#import <CoreVideo/CVTime.h>
 #import <QuartzCore/CoreAnimationExport.h>
 #import <ApplicationServices/ApplicationServices.h>
 
 @class CALayer;
-@class CVTimeStamp;
 
 @interface CARenderer : NSObject {
     void* _cglContext;
