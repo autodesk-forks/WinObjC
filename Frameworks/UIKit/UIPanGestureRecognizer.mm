@@ -473,6 +473,7 @@ static CGPoint pointFromView(const CGPoint& pt, UIView* viewAddr) {
 */
 - (void)reset {
     _priv->touches.clear();
+	_priv->currentTranslation.x = _priv->currentTranslation.y = 0.f;
     _didFireEnded = false;
     _lockVertical = false;
     _lockHorizontal = false;
