@@ -1127,6 +1127,53 @@ static void printViews(id curView, int level) {
         }
     }
 
+
+	//
+	// Remove any gestures that should not simulatanously be recognized
+	//
+
+	// First find the active gesture
+	UIGestureRecognizer* activeGesture = nil;
+
+	int count = [currentlyTrackingGesturesList count];
+    for (int i = count - 1; i >= 0; i--) {
+        UIGestureRecognizer* curGesture = [currentlyTrackingGesturesList objectAtIndex:i];
+		UIGestureRecognizerState state = curGesture.state;
+		if ( state != UIGestureRecognizerStatePossible) {
+			activeGesture = curGesture;
+			break;
+		}
+	}
+
+	if ( activeGesture ) {
+		BOOL activeResponds = [activeGesture.delegate respondsToSelector:@selector(gestureRecognizer:shouldRecognizeSimultaneouslyWithGestureRecognizer:)];
+
+		// now test it against the other gestures, removing if we do not handle simultaneous gestures
+		NSMutableSet* gesturesToRemove = [[NSMutableSet alloc] init];
+		for (UIGestureRecognizer* curGesture in currentlyTrackingGesturesList) {
+
+			if ( curGesture == activeGesture) {
+				continue;
+			}
+			BOOL currentResponds = [curGesture.delegate respondsToSelector:@selector(gestureRecognizer:shouldRecognizeSimultaneouslyWithGestureRecognizer:)];
+
+			if ( currentResponds == NO || [curGesture.delegate gestureRecognizer:curGesture shouldRecognizeSimultaneouslyWithGestureRecognizer:activeGesture] == NO ) {
+				[gesturesToRemove addObject:curGesture];
+			}else if ( activeResponds == NO || [activeGesture.delegate gestureRecognizer:curGesture shouldRecognizeSimultaneouslyWithGestureRecognizer:activeGesture] == NO ) {
+				[gesturesToRemove addObject:curGesture];
+			}
+		}
+
+		// remove those gesturee
+		for ( UIGestureRecognizer* curGesture in gesturesToRemove ) {
+			[curGesture reset];
+			TraceVerbose(TAG, L"Removing gesture %hs %x state=%d", object_getClassName(curGesture), curGesture );
+			[currentlyTrackingGesturesList removeObject:curGesture];
+			id gesturesArr = [g_curGesturesDict objectForKey:[curGesture class]];
+			[gesturesArr removeObject:curGesture];
+		}
+    }
+
     // gesture priority list
     const static id s_gesturesPriority[] = {[UIPinchGestureRecognizer class],
                                             [UISwipeGestureRecognizer class],
