@@ -297,7 +297,7 @@ float DisplayNode::GetPresentationPropertyValue(const char* name) {
     std::string str(name);
     std::wstring wstr(str.begin(), str.end());
 
-    return (float)xamlNode->Get(ref new Platform::String(wstr.data()));
+    return (float)(double)xamlNode->Get(ref new Platform::String(wstr.data()));
 }
 
 void DisplayNode::SetContentsCenter(float x, float y, float width, float height) {
