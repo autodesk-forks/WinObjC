@@ -104,7 +104,26 @@ static int _changingResponder = 0;
 
 + (void)_keyPressed:(unsigned short)key {
     if (_curFirstResponder != nil) {
-        [_curFirstResponder _keyPressed:key];
+	
+		// UIKeyInput protocol support
+		// We are going to forward the events to this protocol first
+		// since ideally the other controls would conform to this protocol and
+		// not handle keyPressed directly
+		if ([_curFirstResponder respondsToSelector:@selector(insertText:)]) {
+
+			
+			const unsigned short DeleteKey = 8;
+			if ( key == DeleteKey ) {
+				if ( [_curFirstResponder respondsToSelector:@selector(deleteBackward)] ) {
+					[_curFirstResponder deleteBackward];
+				}
+			} else {
+				NSString* character = [NSString stringWithCharacters:(unichar*)&key length:1];
+				[_curFirstResponder insertText:character];
+			}
+        } else {
+			[_curFirstResponder _keyPressed:key];
+		}
     }
 }
 
