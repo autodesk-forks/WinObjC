@@ -175,13 +175,13 @@ static void commonInit(UIScrollView* self) {
 
     [self setMultipleTouchEnabled:TRUE];
 
-    self->_pinchGesture.attach([[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(_didPinch:)]);
-    [self->_pinchGesture setDelegate:self];
-    [self addGestureRecognizer:self->_pinchGesture];
-
     self->_panGesture.attach([[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_panGestureCallback:)]);
     [self->_panGesture setDelegate:self];
     [self addGestureRecognizer:self->_panGesture];
+
+	self->_pinchGesture.attach([[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(_didPinch:)]);
+    [self->_pinchGesture setDelegate:self];
+    [self addGestureRecognizer:self->_pinchGesture];
 }
 
 static void commonPostInit(UIScrollView* self) {
@@ -1613,6 +1613,12 @@ static float clipToPage(float start, float curOffset, float velocity, float page
     if (!_isDragging && _pagingEnabled) {
         [self _doPanEndedWithVelocity:CGPointMake(0, 0) notify:FALSE];
     }
+}
+
+// by default we want to be able to recognize both pinch and pan gestures
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+	return TRUE;
 }
 
 - (CGSize)_paddedContentSize {

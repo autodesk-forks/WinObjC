@@ -1174,22 +1174,14 @@ static void printViews(id curView, int level) {
 		}
     }
 
-    // gesture priority list
-    const static id s_gesturesPriority[] = {[UIPinchGestureRecognizer class],
-                                            [UISwipeGestureRecognizer class],
-                                            [UIPanGestureRecognizer class],
-                                            [UILongPressGestureRecognizer class],
-                                            [UITapGestureRecognizer class] };
-
-    const static int s_numGestureTypes = sizeof(s_gesturesPriority) / sizeof(s_gesturesPriority[0]);
-
-    //  Process all gestures
-    for (int i = 0; i < s_numGestureTypes; i++) {
-        id curgestureClass = s_gesturesPriority[i];
-        id gestures = [g_curGesturesDict objectForKey:curgestureClass];
-        if ([curgestureClass _fireGestures:gestures]) {
-            process = false;
-        }
+	// to support the subclassing of gestures, fire the gestures based on their order in the tracking list
+    count = [currentlyTrackingGesturesList count];
+    for (int i = count - 1; i >= 0; i--) {
+        UIGestureRecognizer* curGesture = [currentlyTrackingGesturesList objectAtIndex:i];
+            id curgestureClass = [curGesture class];
+            if ([curgestureClass _fireGestures:@[curGesture]]) {
+                process = false;
+            }
     }
 
     //  Removed/reset failed/done gestures
