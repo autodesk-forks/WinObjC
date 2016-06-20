@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSAOOnlineIdServiceTicketRequest, WSAOOnlineIdServiceTicket, WSAOUserAuthenticationOperation, WSAOSignOutUserOperation,
     WSAOUserIdentity, WSAOOnlineIdAuthenticator;
 @protocol WSAOIOnlineIdServiceTicketRequest
@@ -33,7 +34,6 @@ enum _WSAOCredentialPromptType {
 };
 typedef unsigned WSAOCredentialPromptType;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 // Windows.Foundation.AsyncActionCompletedHandler
 #ifndef __WFAsyncActionCompletedHandler__DEFINED
@@ -145,7 +145,7 @@ WINRT_EXPORT
 @property (readonly) NSString* lastName;
 @property (readonly) NSString* safeCustomerId;
 @property (readonly) NSString* signInName;
-@property (readonly) NSArray* tickets;
+@property (readonly) NSArray* /* WSAOOnlineIdServiceTicket* */ tickets;
 @end
 
 #endif // __WSAOUserIdentity_DEFINED__

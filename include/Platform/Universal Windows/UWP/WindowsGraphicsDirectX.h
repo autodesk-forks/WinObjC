@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 // Windows.Graphics.DirectX.DirectXPixelFormat
 enum _WGDDirectXPixelFormat {
     WGDDirectXPixelFormatUnknown = 0,

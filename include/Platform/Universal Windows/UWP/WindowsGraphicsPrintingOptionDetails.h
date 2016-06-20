@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WGPOPrintCopiesOptionDetails, WGPOPrintMediaSizeOptionDetails, WGPOPrintMediaTypeOptionDetails, WGPOPrintOrientationOptionDetails,
     WGPOPrintQualityOptionDetails, WGPOPrintColorModeOptionDetails, WGPOPrintDuplexOptionDetails, WGPOPrintCollationOptionDetails,
     WGPOPrintStapleOptionDetails, WGPOPrintHolePunchOptionDetails, WGPOPrintBindingOptionDetails, WGPOPrintCustomTextOptionDetails,
@@ -46,7 +47,6 @@ enum _WGPOPrintOptionType {
 };
 typedef unsigned WGPOPrintOptionType;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 #include "WindowsGraphicsPrinting.h"
 
@@ -95,7 +95,7 @@ typedef unsigned WGPOPrintOptionType;
 #define __WGPOIPrintItemListOptionDetails_DEFINED__
 
 @protocol WGPOIPrintItemListOptionDetails <WGPOIPrintOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 - (BOOL)trySetValue:(RTObject*)value;
 @end
 
@@ -136,7 +136,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintMediaSizeOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -153,7 +153,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintMediaTypeOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -170,7 +170,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintOrientationOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -187,7 +187,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintQualityOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -204,7 +204,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintColorModeOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -221,7 +221,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintDuplexOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -238,7 +238,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintCollationOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -255,7 +255,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintStapleOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -272,7 +272,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintHolePunchOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -289,7 +289,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGPOPrintBindingOptionDetails : RTObject <WGPOIPrintOptionDetails, WGPOIPrintItemListOptionDetails>
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -338,7 +338,7 @@ WINRT_EXPORT
 @interface WGPOPrintCustomItemListOptionDetails
     : RTObject <WGPOIPrintOptionDetails, WGPOIPrintCustomOptionDetails, WGPOIPrintItemListOptionDetails>
 @property (retain) NSString* displayName;
-@property (readonly) NSArray* items;
+@property (readonly) NSArray* /* RTObject* */ items;
 @property WGPOPrintOptionStates state;
 @property (retain) NSString* errorText;
 @property (readonly) NSString* optionId;
@@ -376,7 +376,7 @@ WINRT_EXPORT
 #define __WGPIPrintTaskOptionsCoreUIConfiguration_DEFINED__
 
 @protocol WGPIPrintTaskOptionsCoreUIConfiguration
-@property (readonly) NSMutableArray* displayedOptions;
+@property (readonly) NSMutableArray* /* NSString * */ displayedOptions;
 @end
 
 #endif // __WGPIPrintTaskOptionsCoreUIConfiguration_DEFINED__
@@ -388,8 +388,8 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WGPOPrintTaskOptionDetails : RTObject <WGPIPrintTaskOptionsCore, WGPIPrintTaskOptionsCoreUIConfiguration>
 + (WGPOPrintTaskOptionDetails*)getFromPrintTaskOptions:(WGPPrintTaskOptions*)printTaskOptions;
-@property (readonly) NSMutableArray* displayedOptions;
-@property (readonly) NSDictionary* options;
+@property (readonly) NSMutableArray* /* NSString * */ displayedOptions;
+@property (readonly) NSDictionary* /* NSString *, RTObject<WGPOIPrintOptionDetails>* */ options;
 - (EventRegistrationToken)addBeginValidationEvent:(void (^)(WGPOPrintTaskOptionDetails*, RTObject*))del;
 - (void)removeBeginValidationEvent:(EventRegistrationToken)tok;
 - (EventRegistrationToken)addOptionChangedEvent:(void (^)(WGPOPrintTaskOptionDetails*, WGPOPrintTaskOptionChangedEventArgs*))del;

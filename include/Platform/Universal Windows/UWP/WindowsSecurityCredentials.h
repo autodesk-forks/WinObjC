@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSCWebAccountProvider, WSCWebAccount, WSCKeyCredentialRetrievalResult, WSCKeyCredentialOperationResult,
     WSCKeyCredentialAttestationResult, WSCKeyCredential, WSCKeyCredentialManager, WSCPasswordCredential, WSCPasswordVault,
     WSCPasswordCredentialPropertyStore;
@@ -73,8 +74,8 @@ enum _WSCKeyCredentialCreationOption {
 };
 typedef unsigned WSCKeyCredentialCreationOption;
 
-#include "WindowsStorageStreams.h"
 #include "WindowsFoundationCollections.h"
+#include "WindowsStorageStreams.h"
 #include "WindowsFoundation.h"
 #include "WindowsSystem.h"
 
@@ -122,7 +123,7 @@ WINRT_EXPORT
 @property (readonly) NSString* userName;
 @property (readonly) WSCWebAccountProvider* webAccountProvider;
 @property (readonly) NSString* id;
-@property (readonly) NSDictionary* properties;
+@property (readonly) NSDictionary* /* NSString *, NSString * */ properties;
 - (void)getPictureAsync:(WSCWebAccountPictureSize)desizedSize
                 success:(void (^)(RTObject<WSSIRandomAccessStream>*))success
                 failure:(void (^)(NSError*))failure;
@@ -230,9 +231,9 @@ WINRT_EXPORT
 - (void)add:(WSCPasswordCredential*)credential;
 - (void)remove:(WSCPasswordCredential*)credential;
 - (WSCPasswordCredential*)retrieve:(NSString*)resource userName:(NSString*)userName;
-- (NSArray*)findAllByResource:(NSString*)resource;
-- (NSArray*)findAllByUserName:(NSString*)userName;
-- (NSArray*)retrieveAll;
+- (NSArray* /* WSCPasswordCredential* */)findAllByResource:(NSString*)resource;
+- (NSArray* /* WSCPasswordCredential* */)findAllByUserName:(NSString*)userName;
+- (NSArray* /* WSCPasswordCredential* */)retrieveAll;
 @end
 
 #endif // __WSCPasswordVault_DEFINED__

@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDJJsonArray, WDJJsonObject, WDJJsonValue, WDJJsonError;
-@class RTArray_C_RTObject_WDJIJsonValue;
 @protocol WDJIJsonValue
 , WDJIJsonValueStatics, WDJIJsonValueStatics2, WDJIJsonObject, WDJIJsonObjectWithDefaultValues, WDJIJsonObjectStatics, WDJIJsonArray,
     WDJIJsonArrayStatics, WDJIJsonErrorStatics, WDJIJsonErrorStatics2;

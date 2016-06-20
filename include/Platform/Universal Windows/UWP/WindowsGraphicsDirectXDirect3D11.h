@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WGDDDirect3DMultisampleDescription, WGDDDirect3DSurfaceDescription;
 @protocol WGDDIDirect3DDevice
 , WGDDIDirect3DSurface;

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDBBRfcommInboundConnectionInformation, WDBBRfcommOutboundConnectionInformation, WDBBRfcommConnectionTriggerDetails,
     WDBBGattCharacteristicNotificationTriggerDetails, WDBBBluetoothLEAdvertisementWatcherTriggerDetails,
     WDBBBluetoothLEAdvertisementPublisherTriggerDetails;
@@ -30,7 +31,6 @@
 #include "WindowsDevicesBluetoothGenericAttributeProfile.h"
 #include "WindowsDevicesBluetooth.h"
 #include "WindowsDevicesBluetoothAdvertisement.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsDevicesBluetoothRfcomm.h"
 #include "WindowsNetworkingSockets.h"
@@ -92,7 +92,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WDBBBluetoothLEAdvertisementWatcherTriggerDetails : RTObject
-@property (readonly) NSArray* advertisements;
+@property (readonly) NSArray* /* WDBABluetoothLEAdvertisementReceivedEventArgs* */ advertisements;
 @property (readonly) WDBBluetoothError error;
 @property (readonly) WDBBluetoothSignalStrengthFilter* signalStrengthFilter;
 @end

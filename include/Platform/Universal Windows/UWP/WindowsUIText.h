@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUTTextConstants, WUTFontWeights;
 @class WUTFontWeight;
 @protocol WUTITextConstantsStatics

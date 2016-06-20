@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUXCMMapActualCameraChangedEventArgs, WUXCMMapActualCameraChangingEventArgs, WUXCMMapCustomExperienceChangedEventArgs,
     WUXCMMapElementClickEventArgs, WUXCMMapElementPointerEnteredEventArgs, WUXCMMapElementPointerExitedEventArgs,
     WUXCMMapTargetCameraChangedEventArgs, WUXCMMapTileBitmapRequestDeferral, WUXCMMapTileBitmapRequest,
@@ -124,10 +125,9 @@ typedef unsigned WUXCMMapWatermarkMode;
 #include "WindowsFoundation.h"
 #include "WindowsUIXamlMediaMedia3D.h"
 #include "WindowsDevicesGeolocation.h"
-#include "WindowsStorageStreams.h"
 #include "WindowsUIXamlMediaAnimation.h"
 #include "WindowsUIXamlControls.h"
-#include "WindowsFoundationCollections.h"
+#include "WindowsStorageStreams.h"
 #include "WindowsUIXaml.h"
 #include "WindowsUIXamlData.h"
 #include "WindowsUI.h"
@@ -287,7 +287,7 @@ WINRT_EXPORT
 @interface WUXCMMapElementClickEventArgs : RTObject
 + (instancetype)make ACTIVATOR;
 @property (readonly) WDGGeopoint* location;
-@property (readonly) NSMutableArray* mapElements;
+@property (readonly) NSMutableArray* /* WUXCMMapElement* */ mapElements;
 @property (readonly) WFPoint* position;
 @end
 
@@ -507,7 +507,7 @@ WINRT_EXPORT
 + (instancetype)make ACTIVATOR;
 @property (retain) RTObject* itemsSource;
 @property (retain) WXDataTemplate* itemTemplate;
-@property (readonly) NSMutableArray* items;
+@property (readonly) NSMutableArray* /* WXDependencyObject* */ items;
 + (WXDependencyProperty*)itemTemplateProperty;
 + (WXDependencyProperty*)itemsProperty;
 + (WXDependencyProperty*)itemsSourceProperty;
@@ -643,7 +643,7 @@ WINRT_EXPORT
 + (instancetype)make ACTIVATOR;
 @property (retain) NSString* uriFormatString;
 @property BOOL allowCaching;
-@property (readonly) NSMutableDictionary* additionalRequestHeaders;
+@property (readonly) NSMutableDictionary* /* NSString *, NSString * */ additionalRequestHeaders;
 - (EventRegistrationToken)addUriRequestedEvent:(void (^)(WUXCMHttpMapTileDataSource*, WUXCMMapTileUriRequestedEventArgs*))del;
 - (void)removeUriRequestedEvent:(EventRegistrationToken)tok;
 @end
@@ -804,7 +804,8 @@ WINRT_EXPORT
 @protocol WXIUIElementOverrides
 - (WUXAPAutomationPeer*)onCreateAutomationPeer;
 - (void)onDisconnectVisualChildren;
-- (id<NSFastEnumeration>)findSubElementsForTouchTargeting:(WFPoint*)point boundingRect:(WFRect*)boundingRect;
+- (id<NSFastEnumeration> /* id<NSFastEnumeration> < WFPoint* > */)findSubElementsForTouchTargeting:(WFPoint*)point
+                                                                                      boundingRect:(WFRect*)boundingRect;
 @end
 
 #endif // __WXIUIElementOverrides_DEFINED__
@@ -833,7 +834,7 @@ WINRT_EXPORT
 @property BOOL isHoldingEnabled;
 @property WUXIManipulationModes manipulationMode;
 @property (readonly) WFSize* renderSize;
-@property (readonly) NSArray* pointerCaptures;
+@property (readonly) NSArray* /* WUXIPointer* */ pointerCaptures;
 @property (readonly) WFSize* desiredSize;
 @property WUXMElementCompositeMode compositeMode;
 @property (retain) WUXMMTransform3D* transform3D;
@@ -948,7 +949,8 @@ WINRT_EXPORT
 - (void)updateLayout;
 - (WUXAPAutomationPeer*)onCreateAutomationPeer;
 - (void)onDisconnectVisualChildren;
-- (id<NSFastEnumeration>)findSubElementsForTouchTargeting:(WFPoint*)point boundingRect:(WFRect*)boundingRect;
+- (id<NSFastEnumeration> /* id<NSFastEnumeration> < WFPoint* > */)findSubElementsForTouchTargeting:(WFPoint*)point
+                                                                                      boundingRect:(WFRect*)boundingRect;
 - (BOOL)cancelDirectManipulations;
 - (void)startDragAsync:(WUIPointerPoint*)pointerPoint
                success:(void (^)(WADDataPackageOperation))success
@@ -1139,12 +1141,12 @@ WINRT_EXPORT
 @property WUXCMMapStyle style;
 @property BOOL trafficFlowVisible;
 @property (readonly) double minZoomLevel;
-@property (readonly) NSMutableArray* routes;
-@property (readonly) NSMutableArray* tileSources;
+@property (readonly) NSMutableArray* /* WUXCMMapRouteView* */ routes;
+@property (readonly) NSMutableArray* /* WUXCMMapTileSource* */ tileSources;
 @property (readonly) double pitch;
-@property (readonly) NSMutableArray* children;
+@property (readonly) NSMutableArray* /* WXDependencyObject* */ children;
 @property (readonly) WUXCMMapLoadingStatus loadingStatus;
-@property (readonly) NSMutableArray* mapElements;
+@property (readonly) NSMutableArray* /* WUXCMMapElement* */ mapElements;
 @property (readonly) double maxZoomLevel;
 @property BOOL transitFeaturesVisible;
 @property WUXCMMapInteractionMode tiltInteractionMode;
@@ -1219,7 +1221,7 @@ WINRT_EXPORT
 - (void)removeMapElementPointerExitedEvent:(EventRegistrationToken)tok;
 - (EventRegistrationToken)addTargetCameraChangedEvent:(void (^)(WUXCMMapControl*, WUXCMMapTargetCameraChangedEventArgs*))del;
 - (void)removeTargetCameraChangedEvent:(EventRegistrationToken)tok;
-- (NSArray*)findMapElementsAtOffset:(WFPoint*)offset;
+- (NSArray* /* WUXCMMapElement* */)findMapElementsAtOffset:(WFPoint*)offset;
 - (void)getLocationFromOffset:(WFPoint*)offset location:(WDGGeopoint**)location;
 - (void)getOffsetFromLocation:(WDGGeopoint*)location offset:(WFPoint**)offset;
 - (void)isLocationInView:(WDGGeopoint*)location isInView:(BOOL*)isInView;

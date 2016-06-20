@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUIEdgeGestureEventArgs, WUIEdgeGesture, WUIMouseWheelParameters, WUIGestureRecognizer, WUITappedEventArgs, WUIRightTappedEventArgs,
     WUIHoldingEventArgs, WUIDraggingEventArgs, WUIManipulationStartedEventArgs, WUIManipulationUpdatedEventArgs,
     WUIManipulationInertiaStartingEventArgs, WUIManipulationCompletedEventArgs, WUICrossSlidingEventArgs, WUIPointerPoint,
@@ -109,7 +110,6 @@ typedef unsigned WUIPointerUpdateKind;
 
 #include "WindowsDevicesInput.h"
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -242,7 +242,7 @@ WINRT_EXPORT
 - (void)removeTappedEvent:(EventRegistrationToken)tok;
 - (BOOL)canBeDoubleTap:(WUIPointerPoint*)value;
 - (void)processDownEvent:(WUIPointerPoint*)value;
-- (void)processMoveEvents:(id<NSFastEnumeration> /* WUIPointerPoint* */)value;
+- (void)processMoveEvents:(NSMutableArray* /* WUIPointerPoint* */)value;
 - (void)processUpEvent:(WUIPointerPoint*)value;
 - (void)processMouseWheelEvent:(WUIPointerPoint*)value isShiftKeyDown:(BOOL)isShiftKeyDown isControlKeyDown:(BOOL)isControlKeyDown;
 - (void)processInertia;
@@ -379,9 +379,10 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WUIPointerPoint : RTObject
 + (WUIPointerPoint*)getCurrentPoint:(unsigned int)pointerId;
-+ (NSMutableArray*)getIntermediatePoints:(unsigned int)pointerId;
++ (NSMutableArray* /* WUIPointerPoint* */)getIntermediatePoints:(unsigned int)pointerId;
 + (WUIPointerPoint*)getCurrentPointTransformed:(unsigned int)pointerId transform:(RTObject<WUIIPointerPointTransform>*)transform;
-+ (NSMutableArray*)getIntermediatePointsTransformed:(unsigned int)pointerId transform:(RTObject<WUIIPointerPointTransform>*)transform;
++ (NSMutableArray* /* WUIPointerPoint* */)getIntermediatePointsTransformed:(unsigned int)pointerId
+                                                                 transform:(RTObject<WUIIPointerPointTransform>*)transform;
 @property (readonly) unsigned int frameId;
 @property (readonly) BOOL isInContact;
 @property (readonly) WDIPointerDevice* pointerDevice;
@@ -422,7 +423,7 @@ WINRT_EXPORT
 @property (readonly) float twist;
 @property (readonly) float xTilt;
 @property (readonly) float yTilt;
-@property (readonly) id zDistance;
+@property (readonly) id /* float */ zDistance;
 - (BOOL)hasUsage:(unsigned int)usagePage usageId:(unsigned int)usageId;
 - (int)getUsageValue:(unsigned int)usagePage usageId:(unsigned int)usageId;
 @end

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUCCoreDispatcher, WUCCoreCursor, WUCCoreWindow, WUCWindowActivatedEventArgs, WUCAutomationProviderRequestedEventArgs,
     WUCCharacterReceivedEventArgs, WUCCoreWindowEventArgs, WUCInputEnabledEventArgs, WUCKeyEventArgs, WUCPointerEventArgs,
     WUCTouchHitTestingEventArgs, WUCWindowSizeChangedEventArgs, WUCVisibilityChangedEventArgs, WUCIdleDispatchedHandlerArgs,
@@ -135,8 +136,8 @@ typedef unsigned WUCAppViewBackButtonVisibility;
 
 #include "WindowsSystem.h"
 #include "WindowsUIInput.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
+#include "WindowsFoundationCollections.h"
 // Windows.UI.Core.DispatchedHandler
 #ifndef __WUCDispatchedHandler__DEFINED
 #define __WUCDispatchedHandler__DEFINED
@@ -493,7 +494,7 @@ WINRT_EXPORT
 @property BOOL handled;
 @property (readonly) WUIPointerPoint* currentPoint;
 @property (readonly) WSVirtualKeyModifiers keyModifiers;
-- (NSMutableArray*)getIntermediatePoints;
+- (NSMutableArray* /* WUIPointerPoint* */)getIntermediatePoints;
 @end
 
 #endif // __WUCPointerEventArgs_DEFINED__
@@ -509,7 +510,7 @@ WINRT_EXPORT
 @property (readonly) WFRect* boundingBox;
 @property (readonly) WFPoint* point;
 - (WUCCoreProximityEvaluation*)evaluateProximityToRect:(WFRect*)controlBoundingBox;
-- (WUCCoreProximityEvaluation*)evaluateProximityToPolygon:(id<NSFastEnumeration> /* WFPoint* */)controlVertices;
+- (WUCCoreProximityEvaluation*)evaluateProximityToPolygon:(NSArray* /* WFPoint* */)controlVertices;
 @end
 
 #endif // __WUCTouchHitTestingEventArgs_DEFINED__

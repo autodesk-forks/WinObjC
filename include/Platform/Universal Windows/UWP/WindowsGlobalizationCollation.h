@@ -19,13 +19,11 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WGCCharacterGrouping, WGCCharacterGroupings;
-@class RTArray_C_WGCCharacterGrouping;
 @protocol WGCICharacterGrouping
 , WGCICharacterGroupings;
-
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 

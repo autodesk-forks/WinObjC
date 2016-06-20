@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSPPFileRemovedEventArgs, WSPPFileOpenPickerUI, WSPPPickerClosingEventArgs, WSPPPickerClosingOperation, WSPPPickerClosingDeferral,
     WSPPFileSavePickerUI, WSPPTargetFileRequestedEventArgs, WSPPTargetFileRequest, WSPPTargetFileRequestDeferral;
 @protocol WSPPIFileRemovedEventArgs
@@ -51,7 +52,6 @@ enum _WSPPSetFileNameResult {
 typedef unsigned WSPPSetFileNameResult;
 
 #include "WindowsStorage.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
@@ -74,7 +74,7 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WSPPFileOpenPickerUI : RTObject
 @property (retain) NSString* title;
-@property (readonly) NSArray* allowedFileTypes;
+@property (readonly) NSArray* /* NSString * */ allowedFileTypes;
 @property (readonly) WSPPFileSelectionMode selectionMode;
 @property (readonly) NSString* settingsIdentifier;
 - (EventRegistrationToken)addClosingEvent:(void (^)(WSPPFileOpenPickerUI*, WSPPPickerClosingEventArgs*))del;
@@ -131,7 +131,7 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WSPPFileSavePickerUI : RTObject
 @property (retain) NSString* title;
-@property (readonly) NSArray* allowedFileTypes;
+@property (readonly) NSArray* /* NSString * */ allowedFileTypes;
 @property (readonly) NSString* fileName;
 @property (readonly) NSString* settingsIdentifier;
 - (EventRegistrationToken)addFileNameChangedEvent:(void (^)(WSPPFileSavePickerUI*, RTObject*))del;

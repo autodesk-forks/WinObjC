@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WGDDateTimeFormatter;
 @protocol WGDIDateTimeFormatter
 , WGDIDateTimeFormatterFactory, WGDIDateTimeFormatterStatics, WGDIDateTimeFormatter2;
@@ -80,7 +81,6 @@ enum _WGDSecondFormat {
 };
 typedef unsigned WGDSecondFormat;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
@@ -135,9 +135,9 @@ WINRT_EXPORT
 @property (readonly) WGDMonthFormat includeMonth;
 @property (readonly) WGDSecondFormat includeSecond;
 @property (readonly) WGDYearFormat includeYear;
-@property (readonly) NSArray* languages;
+@property (readonly) NSArray* /* NSString * */ languages;
 @property (readonly) NSString* calendar;
-@property (readonly) NSArray* patterns;
+@property (readonly) NSArray* /* NSString * */ patterns;
 @property (readonly) NSString* resolvedGeographicRegion;
 @property (readonly) NSString* resolvedLanguage;
 @property (readonly) NSString* Template;

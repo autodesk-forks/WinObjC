@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUXNNavigationEventArgs, WUXNNavigatingCancelEventArgs, WUXNNavigationFailedEventArgs, WUXNPageStackEntry;
 @protocol WUXNINavigatingCancelEventArgs
 , WUXNINavigatingCancelEventArgs2, WUXNINavigationEventArgs, WUXNINavigationEventArgs2, WUXNINavigationFailedEventArgs, WUXNIPageStackEntry,

@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WADSQuickLink, WADSShareOperation;
 @protocol WADSIQuickLink
 , WADSIShareOperation, WADSIShareOperation2;
 
 #include "WindowsApplicationModelDataTransfer.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 
 #import <Foundation/Foundation.h>
@@ -40,8 +40,8 @@ WINRT_EXPORT
 @property (retain) NSString* title;
 @property (retain) WSSRandomAccessStreamReference* thumbnail;
 @property (retain) NSString* id;
-@property (readonly) NSMutableArray* supportedDataFormats;
-@property (readonly) NSMutableArray* supportedFileTypes;
+@property (readonly) NSMutableArray* /* NSString * */ supportedDataFormats;
+@property (readonly) NSMutableArray* /* NSString * */ supportedFileTypes;
 @end
 
 #endif // __WADSQuickLink_DEFINED__

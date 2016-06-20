@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUTCCoreTextTextRequest, WUTCCoreTextSelectionRequest, WUTCCoreTextLayoutBounds, WUTCCoreTextLayoutRequest,
     WUTCCoreTextCompositionSegment, WUTCCoreTextEditContext, WUTCCoreTextTextRequestedEventArgs, WUTCCoreTextSelectionRequestedEventArgs,
     WUTCCoreTextLayoutRequestedEventArgs, WUTCCoreTextTextUpdatingEventArgs, WUTCCoreTextSelectionUpdatingEventArgs,
@@ -143,7 +144,6 @@ typedef unsigned WUTCCoreTextFormatUpdatingReason;
 #include "WindowsGlobalization.h"
 #include "WindowsUIViewManagement.h"
 #include "WindowsUIText.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -328,13 +328,13 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WUTCCoreTextFormatUpdatingEventArgs : RTObject
 @property WUTCCoreTextFormatUpdatingResult result;
-@property (readonly) id backgroundColor;
+@property (readonly) id /* WUVUIElementType */ backgroundColor;
 @property (readonly) BOOL isCanceled;
 @property (readonly) WUTCCoreTextRange* range;
 @property (readonly) WUTCCoreTextFormatUpdatingReason reason;
-@property (readonly) id textColor;
-@property (readonly) id underlineColor;
-@property (readonly) id underlineType;
+@property (readonly) id /* WUVUIElementType */ textColor;
+@property (readonly) id /* WUVUIElementType */ underlineColor;
+@property (readonly) id /* WUTUnderlineType */ underlineType;
 - (WFDeferral*)getDeferral;
 @end
 
@@ -358,7 +358,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WUTCCoreTextCompositionCompletedEventArgs : RTObject
-@property (readonly) NSArray* compositionSegments;
+@property (readonly) NSArray* /* WUTCCoreTextCompositionSegment* */ compositionSegments;
 @property (readonly) BOOL isCanceled;
 - (WFDeferral*)getDeferral;
 @end

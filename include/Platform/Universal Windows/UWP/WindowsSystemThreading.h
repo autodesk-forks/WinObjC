@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSTThreadPoolTimer, WSTThreadPool;
 @protocol WSTIThreadPoolStatics
 , WSTIThreadPoolTimer, WSTIThreadPoolTimerStatics;

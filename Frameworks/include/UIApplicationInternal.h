@@ -13,9 +13,8 @@
 // THE SOFTWARE.
 //
 //******************************************************************************
+#pragma once
 
-#ifndef _UIAPPLICATIONINTERNAL_H_
-#define _UIAPPLICATIONINTERNAL_H_
 #import <UIKit/UIApplication.h>
 
 @interface UIApplication (internal)
@@ -25,6 +24,7 @@
 - (void)_bringToForeground;
 - (void)_bringToForeground:(NSURL*)url;
 - (void)_sendHighMemoryWarning;
+- (void)_sendNotificationReceivedEvent:(NSString*)notificationData;
 @end
 
 @interface WOCDisplayMode (internal)
@@ -42,4 +42,8 @@
 - (id)_evaluateKeyboard;
 @end
 
-#endif /* _UIAPPLICATIONINTERNAL_H_ */
+// UIApplicationMainInit is declared here instead of UIApplicationMainInternal.h because it uses NS* types and cannot be defined in
+// in a file that gets included in C++/CX sources.
+UIKIT_EXPORT int UIApplicationMainInit(
+    NSString* pClassName, NSString* dClassName, UIInterfaceOrientation defaultOrientation, int activationType, NSString* activationArg);
+void _UIApplicationShutdown();

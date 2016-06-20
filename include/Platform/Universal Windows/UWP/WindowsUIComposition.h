@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUCCompositionObject, WUCCompositionEffect, WUCCompositionEffectFactoryLoadResult, WUCCompositionEffectSourceParameter,
     WUCCompositionImageOptions, WUCCompositionImage, WUCCompositionImageLoadResult, WUCCompositor, WUCCompositionAnimation,
     WUCCompositionPropertyAnimator, WUCAnimationEndedEventArgs, WUCCompositionPropertySet, WUCCompositionGraphicsDevice,
@@ -107,7 +108,6 @@ typedef unsigned WUCCompositionStretch;
 #include "WindowsFoundation.h"
 #include "WindowsGraphicsEffects.h"
 #include "WindowsUICore.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsUI.h"
 
 #import <Foundation/Foundation.h>

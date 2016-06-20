@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDTSemanticTextQuery, WDTUnicodeCharacters, WDTAlternateWordForm, WDTWordSegment, WDTWordsSegmenter, WDTSelectableWordSegment,
     WDTSelectableWordsSegmenter, WDTTextPredictionGenerator, WDTTextConversionGenerator, WDTTextReverseConversionGenerator;
 @class WDTTextSegment;
@@ -83,8 +84,6 @@ enum _WDTAlternateNormalizationFormat {
 };
 typedef unsigned WDTAlternateNormalizationFormat;
 
-#include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 // Windows.Data.Text.SelectableWordSegmentsTokenizingHandler
 #ifndef __WDTSelectableWordSegmentsTokenizingHandler__DEFINED
 #define __WDTSelectableWordSegmentsTokenizingHandler__DEFINED
@@ -131,8 +130,8 @@ WINRT_EXPORT
 @interface WDTSemanticTextQuery : RTObject
 + (WDTSemanticTextQuery*)make:(NSString*)aqsFilter ACTIVATOR;
 + (WDTSemanticTextQuery*)makeWithLanguage:(NSString*)aqsFilter filterLanguage:(NSString*)filterLanguage ACTIVATOR;
-- (NSArray*)find:(NSString*)content;
-- (NSArray*)findInProperty:(NSString*)propertyContent propertyName:(NSString*)propertyName;
+- (NSArray* /* WDTTextSegment* */)find:(NSString*)content;
+- (NSArray* /* WDTTextSegment* */)findInProperty:(NSString*)propertyContent propertyName:(NSString*)propertyName;
 @end
 
 #endif // __WDTSemanticTextQuery_DEFINED__
@@ -183,7 +182,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WDTWordSegment : RTObject
-@property (readonly) NSArray* alternateForms;
+@property (readonly) NSArray* /* WDTAlternateWordForm* */ alternateForms;
 @property (readonly) WDTTextSegment* sourceTextSegment;
 @property (readonly) NSString* text;
 @end
@@ -199,7 +198,7 @@ WINRT_EXPORT
 + (WDTWordsSegmenter*)makeWithLanguage:(NSString*)language ACTIVATOR;
 @property (readonly) NSString* resolvedLanguage;
 - (WDTWordSegment*)getTokenAt:(NSString*)text startIndex:(unsigned int)startIndex;
-- (NSArray*)getTokens:(NSString*)text;
+- (NSArray* /* WDTWordSegment* */)getTokens:(NSString*)text;
 - (void)tokenize:(NSString*)text startIndex:(unsigned int)startIndex handler:(WDTWordSegmentsTokenizingHandler)handler;
 @end
 
@@ -226,7 +225,7 @@ WINRT_EXPORT
 + (WDTSelectableWordsSegmenter*)makeWithLanguage:(NSString*)language ACTIVATOR;
 @property (readonly) NSString* resolvedLanguage;
 - (WDTSelectableWordSegment*)getTokenAt:(NSString*)text startIndex:(unsigned int)startIndex;
-- (NSArray*)getTokens:(NSString*)text;
+- (NSArray* /* WDTSelectableWordSegment* */)getTokens:(NSString*)text;
 - (void)tokenize:(NSString*)text startIndex:(unsigned int)startIndex handler:(WDTSelectableWordSegmentsTokenizingHandler)handler;
 @end
 
@@ -241,10 +240,10 @@ WINRT_EXPORT
 + (WDTTextPredictionGenerator*)make:(NSString*)languageTag ACTIVATOR;
 @property (readonly) BOOL languageAvailableButNotInstalled;
 @property (readonly) NSString* resolvedLanguage;
-- (void)getCandidatesAsync:(NSString*)input success:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)getCandidatesAsync:(NSString*)input success:(void (^)(NSArray* /* NSString * */))success failure:(void (^)(NSError*))failure;
 - (void)getCandidatesWithMaxCountAsync:(NSString*)input
                          maxCandidates:(unsigned int)maxCandidates
-                               success:(void (^)(NSArray*))success
+                               success:(void (^)(NSArray* /* NSString * */))success
                                failure:(void (^)(NSError*))failure;
 @end
 
@@ -259,10 +258,10 @@ WINRT_EXPORT
 + (WDTTextConversionGenerator*)make:(NSString*)languageTag ACTIVATOR;
 @property (readonly) BOOL languageAvailableButNotInstalled;
 @property (readonly) NSString* resolvedLanguage;
-- (void)getCandidatesAsync:(NSString*)input success:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)getCandidatesAsync:(NSString*)input success:(void (^)(NSArray* /* NSString * */))success failure:(void (^)(NSError*))failure;
 - (void)getCandidatesWithMaxCountAsync:(NSString*)input
                          maxCandidates:(unsigned int)maxCandidates
-                               success:(void (^)(NSArray*))success
+                               success:(void (^)(NSArray* /* NSString * */))success
                                failure:(void (^)(NSError*))failure;
 @end
 

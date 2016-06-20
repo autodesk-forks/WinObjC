@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSCCKeyDerivationParameters, WSCCCryptographicKey, WSCCCryptographicHash, WSCCPersistedKeyProvider,
     WSCCEncryptedAndAuthenticatedData, WSCCCryptographicEngine, WSCCHashAlgorithmProvider, WSCCMacAlgorithmProvider,
     WSCCKeyDerivationAlgorithmProvider, WSCCSymmetricKeyAlgorithmProvider, WSCCAsymmetricKeyAlgorithmProvider, WSCCHashAlgorithmNames,
@@ -71,8 +72,6 @@ enum _WSCCCryptographicPadding {
 };
 typedef unsigned WSCCCryptographicPadding;
 
-#include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsSecurityCryptographyCertificates.h"
 
@@ -84,7 +83,6 @@ typedef unsigned WSCCCryptographicPadding;
 
 WINRT_EXPORT
 @interface WSCCKeyDerivationParameters : RTObject
-+ (WSCCKeyDerivationParameters*)buildForCapi1Kdf:(WSCCCapi1KdfTargetAlgorithm)capi1KdfTargetAlgorithm;
 + (WSCCKeyDerivationParameters*)buildForPbkdf2:(RTObject<WSSIBuffer>*)pbkdf2Salt iterationCount:(unsigned int)iterationCount;
 + (WSCCKeyDerivationParameters*)buildForSP800108:(RTObject<WSSIBuffer>*)label context:(RTObject<WSSIBuffer>*)context;
 + (WSCCKeyDerivationParameters*)buildForSP80056a:(RTObject<WSSIBuffer>*)algorithmId
@@ -92,6 +90,7 @@ WINRT_EXPORT
                                       partyVInfo:(RTObject<WSSIBuffer>*)partyVInfo
                                      suppPubInfo:(RTObject<WSSIBuffer>*)suppPubInfo
                                     suppPrivInfo:(RTObject<WSSIBuffer>*)suppPrivInfo;
++ (WSCCKeyDerivationParameters*)buildForCapi1Kdf:(WSCCCapi1KdfTargetAlgorithm)capi1KdfTargetAlgorithm;
 @property (retain) RTObject<WSSIBuffer>* kdfGenericBinary;
 @property (readonly) unsigned int iterationCount;
 @property WSCCCapi1KdfTargetAlgorithm capi1KdfTargetAlgorithm;
@@ -268,7 +267,7 @@ WINRT_EXPORT
 - (WSCCCryptographicKey*)importDefaultPublicKeyBlob:(RTObject<WSSIBuffer>*)keyBlob;
 - (WSCCCryptographicKey*)importPublicKeyWithBlobType:(RTObject<WSSIBuffer>*)keyBlob BlobType:(WSCCCryptographicPublicKeyBlobType)BlobType;
 - (WSCCCryptographicKey*)createKeyPairWithCurveName:(NSString*)curveName;
-- (WSCCCryptographicKey*)createKeyPairWithCurveParameters:(id<NSFastEnumeration> /* uint8_t */)parameters;
+- (WSCCCryptographicKey*)createKeyPairWithCurveParameters:(NSArray* /* uint8_t */)parameters;
 @end
 
 #endif // __WSCCAsymmetricKeyAlgorithmProvider_DEFINED__
@@ -370,7 +369,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WSCCEccCurveNames : RTObject
-+ (NSArray*)allEccCurveNames;
++ (NSArray* /* NSString * */)allEccCurveNames;
 + (NSString*)brainpoolP160r1;
 + (NSString*)brainpoolP160t1;
 + (NSString*)brainpoolP192r1;

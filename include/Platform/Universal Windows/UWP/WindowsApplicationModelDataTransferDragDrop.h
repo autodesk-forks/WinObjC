@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 // Windows.ApplicationModel.DataTransfer.DragDrop.DragDropModifiers
 enum _WADDDragDropModifiers {
     WADDDragDropModifiersNone = 0,

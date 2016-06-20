@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WFCPropertySet, WFCValueSet, WFCStringMap;
 @protocol WFCIVectorChangedEventArgs
 , WFCIPropertySet, WFCIIterable, WFCIIterator, WFCIVectorView, WFCIVector, WFCIKeyValuePair, WFCIMap, WFCIMapView, WFCIObservableVector,
@@ -38,9 +39,7 @@ typedef unsigned WFCCollectionChange;
 
 #import <Foundation/Foundation.h>
 
-// Windows.Foundation.Collections.VectorChangedEventHandler`1
 // Could not generate delegate: Can't marshal 0
-// Windows.Foundation.Collections.MapChangedEventHandler`2
 // Could not generate delegate: Can't marshal 0
 // Windows.Foundation.Collections.IVectorChangedEventArgs
 #ifndef __WFCIVectorChangedEventArgs_DEFINED__

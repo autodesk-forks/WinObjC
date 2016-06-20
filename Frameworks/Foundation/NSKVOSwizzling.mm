@@ -21,6 +21,8 @@
 #import <objc/encoding.h>
 #import <objc/runtime.h>
 
+#include <memory>
+
 /* These are defined by the ABI and the runtime. */
 #define ABI_SUPER(obj) (((Class**)obj)[0][1])
 #define ABI_ISA(obj) (((Class*)obj)[0])
@@ -68,13 +70,38 @@ static void _NSKVOEnsureObjectIsKVOAware(id object) {
 }
 
 #pragma region Method Implementations
-static inline NSString* _keyFromSelector(id object, SEL selector) {
-    return objc_getAssociatedObject(object, const_cast<char*>(sel_getName(selector)));
+// Selector mappings: the class-level mapping from a selector (setX:) to the KVC key ("x")
+// to which it corresponds. This is necessary because both "X" and "x" map to setX:, but we need
+// to be cognizant of precisely which it was for any given observee.
+// The sole reason we can get away with keeping selector<->key mappings on the class is that,
+// through the lifetime of said class, it can never lose selectors. This mapping will be pertinent
+// to every instance of the class.
+static inline CFMutableDictionaryRef _selectorMappingsForObject(id object) {
+    static char s_selMapKey;
+    auto cls = object_getClass(object); // here we explicitly want the public (non-hidden) class associated with the object.
+    @synchronized(cls) {
+        CFMutableDictionaryRef selMappings = (CFMutableDictionaryRef)objc_getAssociatedObject(cls, &s_selMapKey);
+        if (!selMappings) {
+            selMappings = CFDictionaryCreateMutable(kCFAllocatorDefault, 16, NULL, &kCFTypeDictionaryValueCallBacks); // no key callbacks: they're selector names.
+            objc_setAssociatedObject(cls, &s_selMapKey, (id)selMappings, OBJC_ASSOCIATION_RETAIN);
+            CFRelease(selMappings);
+        }
+        return selMappings;
+    }
+}
+
+static inline NSString* _keyForSelector(id object, SEL selector) {
+    return (NSString*)CFDictionaryGetValue(_selectorMappingsForObject(object), sel_getName(selector));
+}
+
+
+static inline void _associateSelectorWithKey(id object, SEL selector, NSString* key) {
+    CFDictionarySetValue(_selectorMappingsForObject(object), sel_getName(selector), key);
 }
 
 template <typename T>
 static void notifyingSetImpl(id self, SEL _cmd, T val) {
-    NSString* key = _keyFromSelector(self, _cmd);
+    NSString* key = _keyForSelector(self, _cmd);
 
     [self willChangeValueForKey:key];
 
@@ -89,7 +116,7 @@ static void notifyingSetImpl(id self, SEL _cmd, T val) {
 }
 
 static void notifyingVariadicSetImpl(id self, SEL _cmd, ...) {
-    NSString* key = _keyFromSelector(self, _cmd);
+    NSString* key = _keyForSelector(self, _cmd);
 
     // [Source: NSInvocation.mm]
     // This attempts to flatten the method's arguments (as determined by its type encoding)
@@ -145,6 +172,93 @@ static void notifyingVariadicSetImpl(id self, SEL _cmd, ...) {
     IwFree(raw);
 }
 
+static void NSKVONotifying$insertObject$inXxxAtIndex$(id self, SEL _cmd, id object, NSUInteger index) {
+    NSString* key = _keyForSelector(self, _cmd);
+    NSIndexSet* indexes = [NSIndexSet indexSetWithIndex:index];
+
+    [self willChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+
+    struct objc_super super {
+        self, ABI_SUPER(self)
+    };
+    auto imp = (void (*)(id, SEL, id, NSUInteger))objc_msg_lookup_super(&super, _cmd);
+    imp(self, _cmd, object, index);
+
+    [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+}
+
+static void NSKVONotifying$insertXxx$atIndexes$(id self, SEL _cmd, id object, NSIndexSet* indexes) {
+    NSString* key = _keyForSelector(self, _cmd);
+
+    [self willChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+
+    struct objc_super super {
+        self, ABI_SUPER(self)
+    };
+    auto imp = (void (*)(id, SEL, id, NSIndexSet*))objc_msg_lookup_super(&super, _cmd);
+    imp(self, _cmd, object, indexes);
+
+    [self didChange:NSKeyValueChangeInsertion valuesAtIndexes:indexes forKey:key];
+}
+
+static void NSKVONotifying$removeObjectFromXxxAtIndex$(id self, SEL _cmd, NSUInteger index) {
+    NSString* key = _keyForSelector(self, _cmd);
+    NSIndexSet* indexes = [NSIndexSet indexSetWithIndex:index];
+
+    [self willChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+
+    struct objc_super super {
+        self, ABI_SUPER(self)
+    };
+    auto imp = (void (*)(id, SEL, NSUInteger))objc_msg_lookup_super(&super, _cmd);
+    imp(self, _cmd, index);
+
+    [self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+}
+
+static void NSKVONotifying$removeXxxAtIndexes$(id self, SEL _cmd, NSIndexSet* indexes) {
+    NSString* key = _keyForSelector(self, _cmd);
+
+    [self willChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+
+    struct objc_super super {
+        self, ABI_SUPER(self)
+    };
+    auto imp = (void (*)(id, SEL, NSIndexSet*))objc_msg_lookup_super(&super, _cmd);
+    imp(self, _cmd, indexes);
+
+    [self didChange:NSKeyValueChangeRemoval valuesAtIndexes:indexes forKey:key];
+}
+
+static void NSKVONotifying$replaceObjectInXxxAtIndex$withObject$(id self, SEL _cmd, NSUInteger index, id object) {
+    NSString* key = _keyForSelector(self, _cmd);
+    NSIndexSet* indexes = [NSIndexSet indexSetWithIndex:index];
+
+    [self willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+
+    struct objc_super super {
+        self, ABI_SUPER(self)
+    };
+    auto imp = (void (*)(id, SEL, NSUInteger, id))objc_msg_lookup_super(&super, _cmd);
+    imp(self, _cmd, index, object);
+
+    [self didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+}
+
+static void NSKVONotifying$replaceXxxAtIndexes$withXxx$(id self, SEL _cmd, NSIndexSet* indexes, NSArray* objects) {
+    NSString* key = _keyForSelector(self, _cmd);
+
+    [self willChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+
+    struct objc_super super {
+        self, ABI_SUPER(self)
+    };
+    auto imp = (void (*)(id, SEL, NSIndexSet*, NSArray*))objc_msg_lookup_super(&super, _cmd);
+    imp(self, _cmd, indexes, objects);
+
+    [self didChange:NSKeyValueChangeReplacement valuesAtIndexes:indexes forKey:key];
+}
+
 // - (void)setObject:(id)object forKey:(NSString*)key
 static void NSKVO$setObject$forKey$(id self, SEL _cmd, id object, NSString* key) {
     [self willChangeValueForKey:key];
@@ -168,6 +282,110 @@ static void NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString* key) {
 }
 #pragma endregion
 
+// invariant: rawKey has already been capitalized
+static void _NSKVOEnsureSimpleKeyWillNotify(id object, NSString* key, const char* rawKey) {
+    auto sel = KVCSetterForPropertyName(object, rawKey);
+
+    Method originalMethod = class_getInstanceMethod(object_getClass(object), sel);
+    const char* types = method_getTypeEncoding(originalMethod);
+    if (!types) {
+        return;
+    }
+
+    NSMethodSignature* sig = [NSMethodSignature signatureWithObjCTypes:types];
+
+    auto valueType = [sig getArgumentTypeAtIndex:2];
+    IMP newImpl = NULL;
+
+    switch (valueType[0]) {
+#define APPLY_TYPE(type, name, capitalizedName, encodingChar)             \
+        case encodingChar:                                            \
+            newImpl = reinterpret_cast<IMP>(&notifyingSetImpl<type>); \
+            break;
+
+        APPLY_TYPE(id, object, Object, '@')
+        APPLY_TYPE(Class, class, Class, '#')
+#include "type_encoding_cases.h"
+#undef APPLY_TYPE
+        case '{':
+        case '[': {
+            size_t valueSize = objc_sizeof_type(valueType);
+            if (valueSize > 6 * sizeof(unsigned long)) {
+                [NSException raise:NSInvalidArgumentException
+                            format:@"Class %s key %@ has a value size of %u bytes, and cannot currently be KVO compliant.",
+                                   class_getName(object_getClass(object)),
+                                   key,
+                                   static_cast<unsigned int>(valueSize)];
+            }
+            newImpl = reinterpret_cast<IMP>(&notifyingVariadicSetImpl);
+            break;
+        }
+        default:
+            [NSException raise:NSInvalidArgumentException
+                        format:@"Class %s is not KVO compliant for key %@.", class_getName(object_getClass(object)), key];
+            return;
+    }
+
+    _associateSelectorWithKey(object, sel, key);
+    object_addMethod_np(object, sel, newImpl, types);
+}
+
+static void replaceAndAssociateWithKey(id object, SEL sel, NSString* key, IMP imp) {
+    if ([object respondsToSelector:sel]) {
+        const char* selName = sel_getName(sel);
+        Method method = class_getInstanceMethod(object_getClass(object), sel);
+        if (!method) {
+            TraceWarning(TAG, L"Unable to find method for %hs on class %hs; perhaps it is a forward?", selName, object_getClassName(object));
+            return;
+        }
+
+        _associateSelectorWithKey(object, sel, key);
+        object_replaceMethod_np(object, sel, imp, method_getTypeEncoding(method));
+    }
+}
+
+static SEL formatSelector(NSString* format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    SEL sel = NSSelectorFromString([[[NSString alloc] initWithFormat:format arguments:ap] autorelease]);
+    va_end(ap);
+    return sel;
+}
+
+// invariant: rawKey has already been capitalized
+static void _NSKVOEnsureCollectionWillNotify(id object, NSString* key, const char* rawKey) {
+    bool found = false;
+    auto insertOneSel = formatSelector(@"insertObject:in%sAtIndex:", rawKey);
+
+    if ([object respondsToSelector:insertOneSel]) {
+        found = true;
+    }
+
+    auto insertManySel = formatSelector(@"insert%s:atIndexes:", rawKey);
+
+    if (!found && ![object respondsToSelector:insertManySel]) {
+        // There is no autodetectable collection here.
+        return;
+    }
+
+    replaceAndAssociateWithKey(object, insertOneSel, key, (IMP)NSKVONotifying$insertObject$inXxxAtIndex$);
+    replaceAndAssociateWithKey(object, insertManySel, key, (IMP)NSKVONotifying$insertXxx$atIndexes$);
+    replaceAndAssociateWithKey(object, formatSelector(@"removeObjectFrom%sAtIndex:", rawKey), key, (IMP)NSKVONotifying$removeObjectFromXxxAtIndex$);
+    replaceAndAssociateWithKey(object, formatSelector(@"remove%sAtIndexes:", rawKey), key, (IMP)NSKVONotifying$removeXxxAtIndexes$);
+    replaceAndAssociateWithKey(object, formatSelector(@"replaceObjectIn%sAtIndex:withObject:", rawKey), key, (IMP)NSKVONotifying$replaceObjectInXxxAtIndex$withObject$);
+    replaceAndAssociateWithKey(object, formatSelector(@"replace%sAtIndexes:with%s:", rawKey, rawKey), key, (IMP)NSKVONotifying$replaceXxxAtIndexes$withXxx$);
+}
+
+static std::unique_ptr<char[]> mutableBufferFromString(NSString* string) {
+    NSUInteger lengthInBytes = 0;
+    auto lengthInCharacters = string.length;
+    [string getBytes:nullptr maxLength:NSIntegerMax usedLength:&lengthInBytes encoding:NSUTF8StringEncoding options:0 range:(NSRange){0, lengthInCharacters} remainingRange:nullptr];
+    std::unique_ptr<char[]> rawKey = std::make_unique<char[]>(lengthInBytes + 1);
+    [string getBytes:rawKey.get() maxLength:lengthInBytes usedLength:&lengthInBytes encoding:NSUTF8StringEncoding options:0 range:(NSRange){0, lengthInCharacters} remainingRange:nullptr];
+    rawKey[lengthInBytes]='\0';
+    return rawKey;
+}
+
 // NSKVOEnsureKeyWillNotify is the main entrypoint into the swizzling code.
 void _NSKVOEnsureKeyWillNotify(id object, NSString* key) {
     // Since we cannot replace the isa of tagged pointer objects, we can't swizzle them.
@@ -180,53 +398,13 @@ void _NSKVOEnsureKeyWillNotify(id object, NSString* key) {
         return;
     }
 
-    _NSKVOEnsureObjectIsKVOAware(object);
+    std::unique_ptr<char[]> rawKey{std::move(mutableBufferFromString(key))};
+    rawKey[0] = toupper(rawKey[0]);
 
     @synchronized(object) {
-        const char* rawKey = [key UTF8String];
-        auto sel = KVCSetterForPropertyName(object, rawKey);
+        _NSKVOEnsureObjectIsKVOAware(object);
 
-        Method originalMethod = class_getInstanceMethod(object_getClass(object), sel);
-        const char* types = method_getTypeEncoding(originalMethod);
-        if (!types) {
-            return;
-        }
-
-        NSMethodSignature* sig = [NSMethodSignature signatureWithObjCTypes:types];
-
-        auto valueType = [sig getArgumentTypeAtIndex:2];
-        IMP newImpl = NULL;
-
-        switch (valueType[0]) {
-#define APPLY_TYPE(type, name, capitalizedName, encodingChar)             \
-            case encodingChar:                                            \
-                newImpl = reinterpret_cast<IMP>(&notifyingSetImpl<type>); \
-                break;
-
-            APPLY_TYPE(id, object, Object, '@')
-            APPLY_TYPE(Class, class, Class, '#')
-#include "type_encoding_cases.h"
-#undef APPLY_TYPE
-            case '{':
-            case '[': {
-                size_t valueSize = objc_sizeof_type(valueType);
-                if (valueSize > 6 * sizeof(unsigned long)) {
-                    [NSException raise:NSInvalidArgumentException
-                                format:@"Class %s key %@ has a value size of %u bytes, and cannot currently be KVO compliant.",
-                                       class_getName(object_getClass(object)),
-                                       key,
-                                       static_cast<unsigned int>(valueSize)];
-                }
-                newImpl = reinterpret_cast<IMP>(&notifyingVariadicSetImpl);
-                break;
-            }
-            default:
-                [NSException raise:NSInvalidArgumentException
-                            format:@"Class %s is not KVO compliant for key %@.", class_getName(object_getClass(object)), key];
-                return;
-        }
-
-        objc_setAssociatedObject(object, const_cast<char*>(sel_getName(sel)), key, OBJC_ASSOCIATION_RETAIN);
-        object_addMethod_np(object, sel, newImpl, types);
+        _NSKVOEnsureSimpleKeyWillNotify(object, key, rawKey.get());
+        _NSKVOEnsureCollectionWillNotify(object, key, rawKey.get());
     }
 }

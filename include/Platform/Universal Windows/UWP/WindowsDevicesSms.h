@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDSSmsTextMessage2, WDSSmsWapMessage, WDSSmsAppMessage, WDSSmsBroadcastMessage, WDSSmsVoicemailMessage, WDSSmsStatusMessage,
     WDSSmsSendMessageResult, WDSSmsDevice2, WDSSmsMessageReceivedTriggerDetails, WDSSmsFilterRule, WDSSmsFilterRules,
     WDSSmsMessageRegistration;
@@ -154,7 +155,6 @@ enum _WDSSmsFilterActionType {
 };
 typedef unsigned WDSSmsFilterActionType;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsFoundation.h"
 
@@ -227,7 +227,7 @@ WINRT_EXPORT
 @property (readonly) RTObject<WSSIBuffer>* binaryBody;
 @property (readonly) NSString* contentType;
 @property (readonly) NSString* from;
-@property (readonly) NSMutableDictionary* headers;
+@property (readonly) NSMutableDictionary* /* NSString *, NSString * */ headers;
 @property (readonly) NSString* to;
 @end
 
@@ -298,7 +298,7 @@ WINRT_EXPORT
 @property (readonly) WDSSmsMessageType messageType;
 @property (readonly) NSString* simIccId;
 @property (readonly) NSString* body;
-@property (readonly) id messageCount;
+@property (readonly) id /* int */ messageCount;
 @property (readonly) WFDateTime* timestamp;
 @property (readonly) NSString* to;
 @end
@@ -336,7 +336,7 @@ WINRT_EXPORT
 @property (readonly) WDSCellularClass cellularClass;
 @property (readonly) BOOL isErrorTransient;
 @property (readonly) BOOL isSuccessful;
-@property (readonly) NSArray* messageReferenceNumbers;
+@property (readonly) NSArray* /* int */ messageReferenceNumbers;
 @property (readonly) WDSSmsModemErrorCode modemErrorCode;
 @property (readonly) int networkCauseCode;
 @property (readonly) int transportFailureCause;
@@ -397,18 +397,18 @@ WINRT_EXPORT
 @interface WDSSmsFilterRule : RTObject
 + (WDSSmsFilterRule*)makeFilterRule:(WDSSmsMessageType)messageType ACTIVATOR;
 @property WDSCellularClass cellularClass;
-@property (readonly) NSMutableArray* broadcastChannels;
-@property (readonly) NSMutableArray* broadcastTypes;
-@property (readonly) NSMutableArray* deviceIds;
-@property (readonly) NSMutableArray* imsiPrefixes;
+@property (readonly) NSMutableArray* /* int */ broadcastChannels;
+@property (readonly) NSMutableArray* /* WDSSmsBroadcastType */ broadcastTypes;
+@property (readonly) NSMutableArray* /* NSString * */ deviceIds;
+@property (readonly) NSMutableArray* /* NSString * */ imsiPrefixes;
 @property (readonly) WDSSmsMessageType messageType;
-@property (readonly) NSMutableArray* portNumbers;
-@property (readonly) NSMutableArray* protocolIds;
-@property (readonly) NSMutableArray* senderNumbers;
-@property (readonly) NSMutableArray* teleserviceIds;
-@property (readonly) NSMutableArray* textMessagePrefixes;
-@property (readonly) NSMutableArray* wapApplicationIds;
-@property (readonly) NSMutableArray* wapContentTypes;
+@property (readonly) NSMutableArray* /* int */ portNumbers;
+@property (readonly) NSMutableArray* /* int */ protocolIds;
+@property (readonly) NSMutableArray* /* NSString * */ senderNumbers;
+@property (readonly) NSMutableArray* /* int */ teleserviceIds;
+@property (readonly) NSMutableArray* /* NSString * */ textMessagePrefixes;
+@property (readonly) NSMutableArray* /* NSString * */ wapApplicationIds;
+@property (readonly) NSMutableArray* /* NSString * */ wapContentTypes;
 @end
 
 #endif // __WDSSmsFilterRule_DEFINED__
@@ -421,7 +421,7 @@ WINRT_EXPORT
 @interface WDSSmsFilterRules : RTObject
 + (WDSSmsFilterRules*)makeFilterRules:(WDSSmsFilterActionType)actionType ACTIVATOR;
 @property (readonly) WDSSmsFilterActionType actionType;
-@property (readonly) NSMutableArray* rules;
+@property (readonly) NSMutableArray* /* WDSSmsFilterRule* */ rules;
 @end
 
 #endif // __WDSSmsFilterRules_DEFINED__
@@ -434,7 +434,7 @@ WINRT_EXPORT
 @interface WDSSmsMessageRegistration : RTObject
 + (WDSSmsMessageRegistration*)Register:(NSString*)id filterRules:(WDSSmsFilterRules*)filterRules;
 @property (readonly) NSString* id;
-+ (NSArray*)allRegistrations;
++ (NSArray* /* WDSSmsMessageRegistration* */)allRegistrations;
 - (EventRegistrationToken)addMessageReceivedEvent:(void (^)(WDSSmsMessageRegistration*, WDSSmsMessageReceivedTriggerDetails*))del;
 - (void)removeMessageReceivedEvent:(EventRegistrationToken)tok;
 - (void)unregister;

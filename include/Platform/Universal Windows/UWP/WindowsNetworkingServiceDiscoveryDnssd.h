@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WNSDDnssdServiceWatcher, WNSDDnssdServiceInstance, WNSDDnssdRegistrationResult, WNSDDnssdServiceInstanceCollection;
 @protocol WNSDIDnssdServiceWatcher
 , WNSDIDnssdRegistrationResult, WNSDIDnssdServiceInstanceFactory, WNSDIDnssdServiceInstance;
@@ -47,7 +48,6 @@ typedef unsigned WNSDDnssdServiceWatcherStatus;
 #include "WindowsFoundation.h"
 #include "WindowsNetworkingSockets.h"
 #include "WindowsNetworking.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsNetworkingConnectivity.h"
 
 #import <Foundation/Foundation.h>
@@ -93,7 +93,7 @@ WINRT_EXPORT
 @property unsigned short port;
 @property (retain) WNHostName* hostName;
 @property (retain) NSString* dnssdServiceInstanceName;
-@property (readonly) NSMutableDictionary* textAttributes;
+@property (readonly) NSMutableDictionary* /* NSString *, NSString * */ textAttributes;
 - (void)registerStreamSocketListenerAsync1:(WNSStreamSocketListener*)socket
                                    success:(void (^)(WNSDDnssdRegistrationResult*))success
                                    failure:(void (^)(NSError*))failure;

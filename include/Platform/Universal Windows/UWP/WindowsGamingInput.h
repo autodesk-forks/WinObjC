@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WGIHeadset, WGIGamepad;
 @class WGIGamepadReading, WGIGamepadVibration;
 @protocol WGIIGameController
@@ -47,7 +48,6 @@ typedef unsigned WGIGamepadButtons;
 
 #include "WindowsFoundation.h"
 #include "WindowsSystem.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -115,7 +115,7 @@ WINRT_EXPORT
 @property (readonly) BOOL isWireless;
 @property (readonly) WSUser* user;
 @property (retain) WGIGamepadVibration* vibration;
-+ (NSArray*)gamepads;
++ (NSArray* /* WGIGamepad* */)gamepads;
 - (EventRegistrationToken)addHeadsetConnectedEvent:(void (^)(RTObject<WGIIGameController>*, WGIHeadset*))del;
 - (void)removeHeadsetConnectedEvent:(EventRegistrationToken)tok;
 - (EventRegistrationToken)addHeadsetDisconnectedEvent:(void (^)(RTObject<WGIIGameController>*, WGIHeadset*))del;

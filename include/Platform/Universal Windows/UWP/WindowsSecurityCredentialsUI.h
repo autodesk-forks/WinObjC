@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSCUCredentialPickerOptions, WSCUCredentialPickerResults, WSCUCredentialPicker, WSCUUserConsentVerifier;
 @protocol WSCUICredentialPickerOptions
 , WSCUICredentialPickerStatics, WSCUICredentialPickerResults, WSCUIUserConsentVerifierStatics;
@@ -67,7 +68,6 @@ enum _WSCUUserConsentVerificationResult {
 typedef unsigned WSCUUserConsentVerificationResult;
 
 #include "WindowsStorageStreams.h"
-#include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
 

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WAAAppServiceRequest, WAAAppServiceDeferral, WAAAppServiceResponse, WAAAppServiceConnection, WAAAppServiceRequestReceivedEventArgs,
     WAAAppServiceClosedEventArgs, WAAAppServiceTriggerDetails, WAAAppServiceCatalog;
 @protocol WAAIAppServiceDeferral
@@ -55,8 +56,8 @@ enum _WAAAppServiceResponseStatus {
 typedef unsigned WAAAppServiceResponseStatus;
 
 #include "WindowsFoundationCollections.h"
-#include "WindowsFoundation.h"
 #include "WindowsApplicationModel.h"
+#include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
 
@@ -167,7 +168,9 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WAAAppServiceCatalog : RTObject
-+ (void)findAppServiceProvidersAsync:(NSString*)appServiceName success:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)findAppServiceProvidersAsync:(NSString*)appServiceName
+                             success:(void (^)(NSArray* /* WAAppInfo* */))success
+                             failure:(void (^)(NSError*))failure;
 @end
 
 #endif // __WAAAppServiceCatalog_DEFINED__

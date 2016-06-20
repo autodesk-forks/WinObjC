@@ -93,7 +93,8 @@ UIKIT_EXPORT_CLASS
 
 @property (nonatomic, readonly, getter=isKeyWindow) BOOL keyWindow;
 @property (nonatomic, retain) UIScreen* screen STUB_PROPERTY;
-@property (nonatomic, assign) UIWindowLevel windowLevel STUB_PROPERTY;
+@property (nonatomic, assign) UIWindowLevel windowLevel;
 @property (nonatomic, retain) UIViewController* rootViewController;
+@property (nonatomic) BOOL sizeUIWindowToFit;
 
 @end

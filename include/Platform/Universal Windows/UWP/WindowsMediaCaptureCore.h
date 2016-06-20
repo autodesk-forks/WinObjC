@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMCCVariablePhotoSequenceCapture, WMCCVariablePhotoCapturedEventArgs;
 @protocol WMCCIVariablePhotoCapturedEventArgs
 , WMCCIVariablePhotoSequenceCapture, WMCCIVariablePhotoSequenceCapture2;
@@ -56,7 +57,7 @@ WINRT_EXPORT
 @property (readonly) WFTimeSpan* captureTimeOffset;
 @property (readonly) WMCCapturedFrameControlValues* capturedFrameControlValues;
 @property (readonly) WMCCapturedFrame* frame;
-@property (readonly) id usedFrameControllerIndex;
+@property (readonly) id /* unsigned int */ usedFrameControllerIndex;
 @end
 
 #endif // __WMCCVariablePhotoCapturedEventArgs_DEFINED__

@@ -27,13 +27,17 @@
 #import <UIKit/UIFont.h>
 #import <UIKit/UINib.h>
 #import <UIKit/UIApplicationDelegate.h>
+#import <StringHelpers.h>
 #import "NSThread-Internal.h"
+#import "StarboardXaml/StarboardXaml.h"
 #import "UIApplicationInternal.h"
 #import "UIFontInternal.h"
 #import "UIViewControllerInternal.h"
 #import "UIInterface.h"
 #import "LoggingNative.h"
 #import "UIDeviceInternal.h"
+#import <MainDispatcher.h>
+#import <CACompositor.h>
 
 static const wchar_t* TAG = L"UIApplicationMain";
 
@@ -110,8 +114,11 @@ static NSAutoreleasePoolWarn* outerPool;
 /**
  @Public No
 */
-int UIApplicationMainInit(
-    int argc, char* argv[], NSString* principalClassName, NSString* delegateClassName, UIInterfaceOrientation defaultOrientation) {
+int UIApplicationMainInit(NSString* principalClassName,
+                          NSString* delegateClassName,
+                          UIInterfaceOrientation defaultOrientation,
+                          int activationType,
+                          NSString* activationArg) {
     // Make sure we reference classes we need:
     void ForceInclusion();
     ForceInclusion();
@@ -232,32 +239,35 @@ int UIApplicationMainInit(
         [uiApplication setDelegate:static_cast<id<UIApplicationDelegate>>(uiApplication)];
     }
 
-    // VSO 5762132: Temporarily call -application:willFinishLaunchingWithOptions: here (before did(...):)
+    NSMutableDictionary* launchOption = [NSMutableDictionary dictionary];
+    switch (activationType) {
+        case ActivationTypeToast:
+            // As there is now way to distinguish remote notification from local, set both keys for now.
+            [launchOption setValue:activationArg forKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+            [launchOption setValue:activationArg forKey:UIApplicationLaunchOptionsLocalNotificationKey];
+            break;
+        default:
+            break;
+    }
+
     if ([curDelegate respondsToSelector:@selector(application:willFinishLaunchingWithOptions:)]) {
-        [curDelegate application:uiApplication willFinishLaunchingWithOptions:nil];
+        [curDelegate application:uiApplication willFinishLaunchingWithOptions:launchOption];
     }
 
     if ([curDelegate respondsToSelector:@selector(application:didFinishLaunchingWithOptions:)]) {
-        NSMutableDictionary* options = [NSMutableDictionary dictionary];
-
-        [curDelegate application:uiApplication didFinishLaunchingWithOptions:nil];
+        [curDelegate application:uiApplication didFinishLaunchingWithOptions:launchOption];
     } else if ([curDelegate respondsToSelector:@selector(applicationDidFinishLaunching:)]) {
         [curDelegate applicationDidFinishLaunching:uiApplication];
     }
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"UIApplicationDidFinishLaunchingNotification" object:uiApplication];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"UIApplicationDidFinishLaunchingNotification"
+                                                        object:uiApplication
+                                                      userInfo:launchOption];
 
     if (rootController != nil) {
         [[uiApplication _popupWindow] setRootViewController:rootController];
         [rootController _doResizeToScreen];
         rootController = nil;
     }
-
-    // TODO::
-    // bug-nithishm-03172016 -  Sending applicationDidBecomeActive as part of application launch until 6910008 is root caused.
-    if ([curDelegate respondsToSelector:@selector(applicationDidBecomeActive:)]) {
-        [curDelegate applicationDidBecomeActive:uiApplication];
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"UIApplicationDidBecomeActiveNotification" object:uiApplication];
 
     [[UIDevice currentDevice] performSelectorOnMainThread:@selector(_setOrientation:) withObject:0 waitUntilDone:FALSE];
     [[UIDevice currentDevice] performSelectorOnMainThread:@selector(_setInitialOrientation) withObject:0 waitUntilDone:FALSE];
@@ -276,29 +286,12 @@ int UIApplicationMainInit(
         [curWindow setHidden:FALSE];
     }
 
-    //  Cycle through the runloop once before releasing our pool,
-    //  so that any layouts or selectors get a chance to retain before
-    //  objects get destroyed
-    [runLoop runMode:@"kCFRunLoopDefaultMode" beforeDate:[NSDate distantPast]];
     [pool release];
 
     return 0;
 }
 
-/**
- @Public No
-*/
-int UIApplicationMainLoop() {
-    [[NSThread currentThread] _associateWithMainThread];
-    NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
-
-    for (;;) {
-        [runLoop run];
-        TraceWarning(TAG, L"Warning: CFRunLoop stopped");
-        if (_doShutdown) {
-            break;
-        }
-    }
+void _UIApplicationShutdown() {
     UIBecomeInactive();
     if ([[[UIApplication sharedApplication] delegate] respondsToSelector:@selector(applicationWillTerminate:)]) {
         [[[UIApplication sharedApplication] delegate] applicationWillTerminate:[UIApplication sharedApplication]];
@@ -309,14 +302,17 @@ int UIApplicationMainLoop() {
     TraceVerbose(TAG, L"Exiting uncleanly.");
     EbrShutdownAV();
     [outerPool release];
-
-    return 0;
 }
 
-void UIApplicationMainHandleWindowVisibilityChangeEvent(bool isVisible) {
+extern "C" void UIApplicationMainHandleWindowVisibilityChangeEvent(bool isVisible) {
     [[UIApplication sharedApplication] _sendActiveStatus:((isVisible) ? YES : NO)];
 }
 
-void UIApplicationMainHandleHighMemoryUsageEvent() {
+extern "C" void UIApplicationMainHandleHighMemoryUsageEvent() {
     [[UIApplication sharedApplication] _sendHighMemoryWarning];
+}
+
+extern "C" void UIApplicationMainHandleToastNotificationEvent(const char* notificationData) {
+    NSString* data = Strings::IsEmpty<const char*>(notificationData) ? nil : [[NSString alloc] initWithCString:notificationData];
+    [[UIApplication sharedApplication] _sendNotificationReceivedEvent:data];
 }

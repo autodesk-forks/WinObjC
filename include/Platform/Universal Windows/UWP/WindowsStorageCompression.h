@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSCCompressor, WSCDecompressor;
 @protocol WSCICompressor
 , WSCIDecompressor, WSCICompressorFactory, WSCIDecompressorFactory;

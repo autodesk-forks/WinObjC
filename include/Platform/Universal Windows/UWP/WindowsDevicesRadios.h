@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDRRadio;
 @protocol WDRIRadioStatics
 , WDRIRadio;
@@ -53,7 +54,6 @@ enum _WDRRadioAccessStatus {
 typedef unsigned WDRRadioAccessStatus;
 
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -63,7 +63,7 @@ typedef unsigned WDRRadioAccessStatus;
 
 WINRT_EXPORT
 @interface WDRRadio : RTObject
-+ (void)getRadiosAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)getRadiosAsyncWithSuccess:(void (^)(NSArray* /* WDRRadio* */))success failure:(void (^)(NSError*))failure;
 + (NSString*)getDeviceSelector;
 + (void)fromIdAsync:(NSString*)deviceId success:(void (^)(WDRRadio*))success failure:(void (^)(NSError*))failure;
 + (void)requestAccessAsyncWithSuccess:(void (^)(WDRRadioAccessStatus))success failure:(void (^)(NSError*))failure;

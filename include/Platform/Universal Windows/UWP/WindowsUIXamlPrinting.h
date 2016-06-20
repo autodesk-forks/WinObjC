@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUXPAddPagesEventArgs, WUXPGetPreviewPageEventArgs, WUXPPaginateEventArgs, WUXPPrintDocument;
 @protocol WUXPIAddPagesEventArgs
 , WUXPIGetPreviewPageEventArgs, WUXPIPaginateEventArgs, WUXPIPrintDocument, WUXPIPrintDocumentStatics, WUXPIPrintDocumentFactory;

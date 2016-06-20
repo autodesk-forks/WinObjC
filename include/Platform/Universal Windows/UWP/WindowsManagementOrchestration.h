@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMOCurrentAppOrchestration, WMOSingleAppModeContext;
 @protocol WMOICurrentAppOrchestrationStatics
 , WMOICurrentAppOrchestration, WMOISingleAppModeContext;

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WAUSDeviceAccountConfiguration, WAUSUserDataAccountSystemAccessManager;
 @protocol WAUSIDeviceAccountConfiguration
 , WAUSIUserDataAccountSystemAccessManagerStatics;
@@ -31,9 +32,6 @@ enum _WAUSDeviceAccountServerType {
     WAUSDeviceAccountServerTypeImap = 2,
 };
 typedef unsigned WAUSDeviceAccountServerType;
-
-#include "WindowsFoundationCollections.h"
-#include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
 
@@ -71,7 +69,7 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WAUSUserDataAccountSystemAccessManager : RTObject
 + (void)addAndShowDeviceAccountsAsync:(id<NSFastEnumeration> /* WAUSDeviceAccountConfiguration* */)accounts
-                              success:(void (^)(NSArray*))success
+                              success:(void (^)(NSArray* /* NSString * */))success
                               failure:(void (^)(NSError*))failure;
 @end
 

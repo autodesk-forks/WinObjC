@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMOOcrWord, WMOOcrLine, WMOOcrResult, WMOOcrEngine;
 @protocol WMOIOcrWord
 , WMOIOcrLine, WMOIOcrResult, WMOIOcrEngine, WMOIOcrEngineStatics;
 
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsGraphicsImaging.h"
 #include "WindowsGlobalization.h"
 
@@ -50,7 +50,7 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WMOOcrLine : RTObject
 @property (readonly) NSString* text;
-@property (readonly) NSArray* words;
+@property (readonly) NSArray* /* WMOOcrWord* */ words;
 @end
 
 #endif // __WMOOcrLine_DEFINED__
@@ -61,9 +61,9 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WMOOcrResult : RTObject
-@property (readonly) NSArray* lines;
+@property (readonly) NSArray* /* WMOOcrLine* */ lines;
 @property (readonly) NSString* text;
-@property (readonly) id textAngle;
+@property (readonly) id /* double */ textAngle;
 @end
 
 #endif // __WMOOcrResult_DEFINED__
@@ -78,7 +78,7 @@ WINRT_EXPORT
 + (WMOOcrEngine*)tryCreateFromLanguage:(WGLanguage*)language;
 + (WMOOcrEngine*)tryCreateFromUserProfileLanguages;
 @property (readonly) WGLanguage* recognizerLanguage;
-+ (NSArray*)availableRecognizerLanguages;
++ (NSArray* /* WGLanguage* */)availableRecognizerLanguages;
 + (unsigned int)maxImageDimension;
 - (void)recognizeAsync:(WGISoftwareBitmap*)bitmap success:(void (^)(WMOOcrResult*))success failure:(void (^)(NSError*))failure;
 @end

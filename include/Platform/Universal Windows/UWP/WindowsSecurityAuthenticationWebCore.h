@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSAWCWebTokenRequest, WSAWCWebAuthenticationCoreManager, WSAWCWebProviderError, WSAWCWebTokenResponse, WSAWCWebTokenRequestResult;
 @protocol WSAWCIWebTokenRequest
 , WSAWCIWebTokenRequestFactory, WSAWCIWebAuthenticationCoreManagerStatics, WSAWCIWebAuthenticationCoreManagerStatics2,
@@ -45,7 +46,6 @@ enum _WSAWCWebTokenRequestStatus {
 typedef unsigned WSAWCWebTokenRequestStatus;
 
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsSecurityCredentials.h"
 #include "WindowsSystem.h"
 
@@ -66,7 +66,7 @@ WINRT_EXPORT
 + (WSAWCWebTokenRequest*)makeWithScope:(WSCWebAccountProvider*)provider scope:(NSString*)scope ACTIVATOR;
 @property (readonly) NSString* clientId;
 @property (readonly) WSAWCWebTokenRequestPromptType promptType;
-@property (readonly) NSMutableDictionary* properties;
+@property (readonly) NSMutableDictionary* /* NSString *, NSString * */ properties;
 @property (readonly) NSString* scope;
 @property (readonly) WSCWebAccountProvider* webAccountProvider;
 @end
@@ -147,7 +147,7 @@ WINRT_EXPORT
 + (WSAWCWebProviderError*)make:(unsigned int)errorCode errorMessage:(NSString*)errorMessage ACTIVATOR;
 @property (readonly) unsigned int errorCode;
 @property (readonly) NSString* errorMessage;
-@property (readonly) NSMutableDictionary* properties;
+@property (readonly) NSMutableDictionary* /* NSString *, NSString * */ properties;
 @end
 
 #endif // __WSAWCWebProviderError_DEFINED__
@@ -158,13 +158,13 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WSAWCWebTokenResponse : RTObject
++ (instancetype)make ACTIVATOR;
 + (WSAWCWebTokenResponse*)makeWithToken:(NSString*)token ACTIVATOR;
 + (WSAWCWebTokenResponse*)makeWithTokenAndAccount:(NSString*)token webAccount:(WSCWebAccount*)webAccount ACTIVATOR;
 + (WSAWCWebTokenResponse*)makeWithTokenAccountAndError:(NSString*)token
                                             webAccount:(WSCWebAccount*)webAccount
                                                  error:(WSAWCWebProviderError*)error ACTIVATOR;
-+ (instancetype)make ACTIVATOR;
-@property (readonly) NSMutableDictionary* properties;
+@property (readonly) NSMutableDictionary* /* NSString *, NSString * */ properties;
 @property (readonly) WSAWCWebProviderError* providerError;
 @property (readonly) NSString* token;
 @property (readonly) WSCWebAccount* webAccount;
@@ -178,7 +178,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WSAWCWebTokenRequestResult : RTObject
-@property (readonly) NSArray* responseData;
+@property (readonly) NSArray* /* WSAWCWebTokenResponse* */ responseData;
 @property (readonly) WSAWCWebProviderError* responseError;
 @property (readonly) WSAWCWebTokenRequestStatus responseStatus;
 - (RTObject<WFIAsyncAction>*)invalidateCacheAsync;

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDWWiFiAdapter, WDWWiFiNetworkReport, WDWWiFiAvailableNetwork, WDWWiFiConnectionResult;
 @protocol WDWIWiFiAdapterStatics
 , WDWIWiFiAdapter, WDWIWiFiNetworkReport, WDWIWiFiAvailableNetwork, WDWIWiFiConnectionResult;
@@ -74,10 +75,9 @@ enum _WDWWiFiConnectionStatus {
 };
 typedef unsigned WDWWiFiConnectionStatus;
 
+#include "WindowsNetworkingConnectivity.h"
 #include "WindowsFoundation.h"
 #include "WindowsSecurityCredentials.h"
-#include "WindowsFoundationCollections.h"
-#include "WindowsNetworkingConnectivity.h"
 
 #import <Foundation/Foundation.h>
 
@@ -87,7 +87,7 @@ typedef unsigned WDWWiFiConnectionStatus;
 
 WINRT_EXPORT
 @interface WDWWiFiAdapter : RTObject
-+ (void)findAllAdaptersAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)findAllAdaptersAsyncWithSuccess:(void (^)(NSArray* /* WDWWiFiAdapter* */))success failure:(void (^)(NSError*))failure;
 + (NSString*)getDeviceSelector;
 + (void)fromIdAsync:(NSString*)deviceId success:(void (^)(WDWWiFiAdapter*))success failure:(void (^)(NSError*))failure;
 + (void)requestAccessAsyncWithSuccess:(void (^)(WDWWiFiAccessStatus))success failure:(void (^)(NSError*))failure;
@@ -122,7 +122,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WDWWiFiNetworkReport : RTObject
-@property (readonly) NSArray* availableNetworks;
+@property (readonly) NSArray* /* WDWWiFiAvailableNetwork* */ availableNetworks;
 @property (readonly) WFDateTime* timestamp;
 @end
 

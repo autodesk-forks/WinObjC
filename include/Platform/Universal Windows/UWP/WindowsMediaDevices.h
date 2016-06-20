@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMDDefaultAudioCaptureDeviceChangedEventArgs, WMDDefaultAudioRenderDeviceChangedEventArgs, WMDMediaDevice, WMDAudioDeviceController,
     WMDVideoDeviceController, WMDSceneModeControl, WMDTorchControl, WMDFlashControl, WMDExposureCompensationControl, WMDIsoSpeedControl,
     WMDWhiteBalanceControl, WMDExposureControl, WMDZoomSettings, WMDZoomControl, WMDFocusSettings, WMDFocusControl, WMDRegionOfInterest,
@@ -213,7 +214,6 @@ enum _WMDMediaCaptureOptimization {
 typedef unsigned WMDMediaCaptureOptimization;
 
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsMediaCapture.h"
 #include "WindowsMediaMediaProperties.h"
 #include "WindowsMediaDevicesCore.h"
@@ -236,7 +236,7 @@ typedef unsigned WMDMediaCaptureOptimization;
 #define __WMDIMediaDeviceController_DEFINED__
 
 @protocol WMDIMediaDeviceController
-- (NSArray*)getAvailableMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
+- (NSArray* /* RTObject<WMMIMediaEncodingProperties>* */)getAvailableMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
 - (RTObject<WMMIMediaEncodingProperties>*)getMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
 - (RTObject<WFIAsyncAction>*)setMediaStreamPropertiesAsync:(WMCMediaStreamType)mediaStreamType
                                    mediaEncodingProperties:(RTObject<WMMIMediaEncodingProperties>*)mediaEncodingProperties;
@@ -295,7 +295,7 @@ WINRT_EXPORT
 @interface WMDAudioDeviceController : RTObject <WMDIMediaDeviceController>
 @property float volumePercent;
 @property BOOL muted;
-- (NSArray*)getAvailableMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
+- (NSArray* /* RTObject<WMMIMediaEncodingProperties>* */)getAvailableMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
 - (RTObject<WMMIMediaEncodingProperties>*)getMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
 - (RTObject<WFIAsyncAction>*)setMediaStreamPropertiesAsync:(WMCMediaStreamType)mediaStreamType
                                    mediaEncodingProperties:(RTObject<WMMIMediaEncodingProperties>*)mediaEncodingProperties;
@@ -342,7 +342,7 @@ WINRT_EXPORT
 @property (readonly) WMDMediaDeviceControl* roll;
 - (BOOL)trySetPowerlineFrequency:(WMCPowerlineFrequency)value;
 - (BOOL)tryGetPowerlineFrequency:(WMCPowerlineFrequency*)value;
-- (NSArray*)getAvailableMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
+- (NSArray* /* RTObject<WMMIMediaEncodingProperties>* */)getAvailableMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
 - (RTObject<WMMIMediaEncodingProperties>*)getMediaStreamProperties:(WMCMediaStreamType)mediaStreamType;
 - (RTObject<WFIAsyncAction>*)setMediaStreamPropertiesAsync:(WMCMediaStreamType)mediaStreamType
                                    mediaEncodingProperties:(RTObject<WMMIMediaEncodingProperties>*)mediaEncodingProperties;
@@ -358,7 +358,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WMDSceneModeControl : RTObject
-@property (readonly) NSArray* supportedModes;
+@property (readonly) NSArray* /* WMDCaptureSceneMode */ supportedModes;
 @property (readonly) WMDCaptureSceneMode value;
 - (RTObject<WFIAsyncAction>*)setValueAsync:(WMDCaptureSceneMode)sceneMode;
 @end
@@ -422,7 +422,7 @@ WINRT_EXPORT
 @interface WMDIsoSpeedControl : RTObject
 @property (readonly) WMDIsoSpeedPreset preset;
 @property (readonly) BOOL supported;
-@property (readonly) NSArray* supportedPresets;
+@property (readonly) NSArray* /* WMDIsoSpeedPreset */ supportedPresets;
 @property (readonly) BOOL Auto;
 @property (readonly) unsigned int max;
 @property (readonly) unsigned int min;
@@ -496,7 +496,7 @@ WINRT_EXPORT
 @property (readonly) float step;
 @property (readonly) BOOL supported;
 @property (readonly) WMDZoomTransitionMode mode;
-@property (readonly) NSArray* supportedModes;
+@property (readonly) NSArray* /* WMDZoomTransitionMode */ supportedModes;
 - (void)configure:(WMDZoomSettings*)settings;
 @end
 
@@ -510,9 +510,9 @@ WINRT_EXPORT
 @interface WMDFocusSettings : RTObject
 + (instancetype)make ACTIVATOR;
 @property BOOL waitForFocus;
-@property (retain) id value;
+@property (retain) id /* unsigned int */ value;
 @property WMDFocusMode mode;
-@property (retain) id distance;
+@property (retain) id /* WMDManualFocusDistance */ distance;
 @property BOOL disableDriverFallback;
 @property WMDAutoFocusRange autoFocusRange;
 @end
@@ -530,14 +530,14 @@ WINRT_EXPORT
 @property (readonly) WMDFocusPreset preset;
 @property (readonly) unsigned int step;
 @property (readonly) BOOL supported;
-@property (readonly) NSArray* supportedPresets;
+@property (readonly) NSArray* /* WMDFocusPreset */ supportedPresets;
 @property (readonly) unsigned int value;
 @property (readonly) BOOL focusChangedSupported;
 @property (readonly) WMDMediaCaptureFocusState focusState;
 @property (readonly) WMDFocusMode mode;
-@property (readonly) NSArray* supportedFocusDistances;
-@property (readonly) NSArray* supportedFocusModes;
-@property (readonly) NSArray* supportedFocusRanges;
+@property (readonly) NSArray* /* WMDManualFocusDistance */ supportedFocusDistances;
+@property (readonly) NSArray* /* WMDFocusMode */ supportedFocusModes;
+@property (readonly) NSArray* /* WMDAutoFocusRange */ supportedFocusRanges;
 @property (readonly) BOOL waitForFocusSupported;
 - (RTObject<WFIAsyncAction>*)setPresetAsync:(WMDFocusPreset)preset;
 - (RTObject<WFIAsyncAction>*)setPresetWithCompletionOptionAsync:(WMDFocusPreset)preset completeBeforeFocus:(BOOL)completeBeforeFocus;
@@ -605,7 +605,7 @@ WINRT_EXPORT
 @interface WMDHdrVideoControl : RTObject
 @property WMDHdrVideoMode mode;
 @property (readonly) BOOL supported;
-@property (readonly) NSArray* supportedModes;
+@property (readonly) NSArray* /* WMDHdrVideoMode */ supportedModes;
 @end
 
 #endif // __WMDHdrVideoControl_DEFINED__
@@ -630,7 +630,7 @@ WINRT_EXPORT
 @interface WMDAdvancedPhotoControl : RTObject
 @property (readonly) WMDAdvancedPhotoMode mode;
 @property (readonly) BOOL supported;
-@property (readonly) NSArray* supportedModes;
+@property (readonly) NSArray* /* WMDAdvancedPhotoMode */ supportedModes;
 - (void)configure:(WMDAdvancedPhotoCaptureSettings*)settings;
 @end
 
@@ -644,7 +644,7 @@ WINRT_EXPORT
 @interface WMDOpticalImageStabilizationControl : RTObject
 @property WMDOpticalImageStabilizationMode mode;
 @property (readonly) BOOL supported;
-@property (readonly) NSArray* supportedModes;
+@property (readonly) NSArray* /* WMDOpticalImageStabilizationMode */ supportedModes;
 @end
 
 #endif // __WMDOpticalImageStabilizationControl_DEFINED__

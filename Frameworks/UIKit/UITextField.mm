@@ -32,11 +32,10 @@
 #import <UIKit/UIImage.h>
 #import <UIKit/UIImageView.h>
 #import <UIKit/UITableViewCell.h>
-#import "NSMutableString+Internal.h"
-
 #import <UWP/WindowsUIXamlControls.h>
-
 #import "XamlUtilities.h"
+#import "UIResponderInternal.h"
+#import "UIApplicationInternal.h"
 
 static const wchar_t* TAG = L"UITextField";
 
@@ -100,6 +99,10 @@ NSString* const UITextFieldTextDidEndEditingNotification = @"UITextFieldTextDidE
             _passwordBox.password = _text;
         } else {
             _textBox.text = _text;
+            // Ensure caret at end of field in case we programmatically
+            // gain focus (becomeFirstResponder) after the text is set:
+            _textBox.selectionStart = [_text length];
+            _textBox.selectionLength = 0;
         }
         [_secureModeLock unlock];
     }
@@ -805,9 +808,9 @@ NSString* const UITextFieldTextDidEndEditingNotification = @"UITextFieldTextDidE
 */
 - (void)setEnabled:(BOOL)enabled {
     if (self.secureTextEntry) {
-        self->_textBox.isEnabled = enabled;
-    } else {
         self->_passwordBox.isEnabled = enabled;
+    } else {
+        self->_textBox.isEnabled = enabled;
     }
 }
 

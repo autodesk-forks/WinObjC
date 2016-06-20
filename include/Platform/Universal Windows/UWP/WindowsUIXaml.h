@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WXDispatcherTimer, WXCornerRadiusHelper, WXDurationHelper, WXGridLengthHelper, WXThicknessHelper,
     WXApplicationInitializationCallbackParams, WXDependencyObject, WXDependencyProperty, WXDependencyPropertyChangedEventArgs,
     WXRoutedEventArgs, WXUnhandledExceptionEventArgs, WXVisualStateChangedEventArgs, WXDataContextChangedEventArgs, WXDataTemplateKey,
@@ -31,7 +32,6 @@
     WXFrameworkElement, WXMediaFailedRoutedEventArgs, WXSetter, WXStateTrigger, WXBindingFailedEventArgs, WXDebugSettings, WXApplication,
     WXFrameworkViewSource, WXPointHelper, WXRectHelper, WXSizeHelper;
 @class WXCornerRadius, WXDuration, WXGridLength, WXThickness;
-@class RTArray_C_WXSetterBase, RTArray_C_WXTriggerAction;
 @protocol WXIDataTemplateExtension
 , WXIDataTemplate, WXIDataTemplateFactory, WXIDataTemplateStatics2, WXIDispatcherTimer, WXIDispatcherTimerFactory, WXICornerRadiusHelper,
     WXICornerRadiusHelperStatics, WXIDurationHelper, WXIDurationHelperStatics, WXIGridLengthHelper, WXIGridLengthHelperStatics,
@@ -309,13 +309,12 @@ typedef unsigned WXAutomationTextAttributesEnum;
 #include "WindowsApplicationModelDataTransfer.h"
 #include "WindowsUIXamlMediaAnimation.h"
 #include "WindowsUIXamlControls.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 #include "WindowsGraphicsImaging.h"
 #include "WindowsUICore.h"
+#include "WindowsApplicationModelDataTransferDragDrop.h"
 #include "WindowsUIXamlInterop.h"
 #include "WindowsUIXamlMediaImaging.h"
-#include "WindowsApplicationModelDataTransferDragDrop.h"
 #include "WindowsUIXamlInput.h"
 #include "WindowsUIInput.h"
 #include "WindowsUIXamlAutomationPeers.h"
@@ -639,7 +638,8 @@ typedef void (^WXBindingFailedEventHandler)(RTObject* sender, WXBindingFailedEve
 @protocol WXIUIElementOverrides
 - (WUXAPAutomationPeer*)onCreateAutomationPeer;
 - (void)onDisconnectVisualChildren;
-- (id<NSFastEnumeration>)findSubElementsForTouchTargeting:(WFPoint*)point boundingRect:(WFRect*)boundingRect;
+- (id<NSFastEnumeration> /* id<NSFastEnumeration> < WFPoint* > */)findSubElementsForTouchTargeting:(WFPoint*)point
+                                                                                      boundingRect:(WFRect*)boundingRect;
 @end
 
 #endif // __WXIUIElementOverrides_DEFINED__
@@ -1250,8 +1250,8 @@ WINRT_EXPORT
 + (instancetype)make ACTIVATOR;
 @property (readonly) unsigned int size;
 @property (retain) WFUri* source;
-@property (readonly) NSMutableArray* mergedDictionaries;
-@property (readonly) NSMutableDictionary* themeDictionaries;
+@property (readonly) NSMutableArray* /* WXResourceDictionary* */ mergedDictionaries;
+@property (readonly) NSMutableDictionary* /* RTObject*, RTObject* */ themeDictionaries;
 - (id)objectForKey:(id)key;
 - (NSArray*)allKeys;
 - (NSArray*)allKeysForObject:(id)obj;
@@ -1367,7 +1367,7 @@ WINRT_EXPORT
 @property BOOL isHoldingEnabled;
 @property WUXIManipulationModes manipulationMode;
 @property (readonly) WFSize* renderSize;
-@property (readonly) NSArray* pointerCaptures;
+@property (readonly) NSArray* /* WUXIPointer* */ pointerCaptures;
 @property (readonly) WFSize* desiredSize;
 @property WUXMElementCompositeMode compositeMode;
 @property (retain) WUXMMTransform3D* transform3D;
@@ -1482,7 +1482,8 @@ WINRT_EXPORT
 - (void)updateLayout;
 - (WUXAPAutomationPeer*)onCreateAutomationPeer;
 - (void)onDisconnectVisualChildren;
-- (id<NSFastEnumeration>)findSubElementsForTouchTargeting:(WFPoint*)point boundingRect:(WFRect*)boundingRect;
+- (id<NSFastEnumeration> /* id<NSFastEnumeration> < WFPoint* > */)findSubElementsForTouchTargeting:(WFPoint*)point
+                                                                                      boundingRect:(WFRect*)boundingRect;
 - (BOOL)cancelDirectManipulations;
 - (void)startDragAsync:(WUIPointerPoint*)pointerPoint
                success:(void (^)(WADDataPackageOperation))success
@@ -1501,7 +1502,7 @@ WINRT_EXPORT
 @property (retain) WUXMAStoryboard* storyboard;
 @property (readonly) NSString* name;
 @property (readonly) WXSetterBaseCollection* setters;
-@property (readonly) NSMutableArray* stateTriggers;
+@property (readonly) NSMutableArray* /* WXStateTriggerBase* */ stateTriggers;
 @end
 
 #endif // __WXVisualState_DEFINED__
@@ -1515,8 +1516,8 @@ WINRT_EXPORT
 + (instancetype)make ACTIVATOR;
 @property (readonly) WXVisualState* currentState;
 @property (readonly) NSString* name;
-@property (readonly) NSMutableArray* states;
-@property (readonly) NSMutableArray* transitions;
+@property (readonly) NSMutableArray* /* WXVisualState* */ states;
+@property (readonly) NSMutableArray* /* WXVisualTransition* */ transitions;
 - (EventRegistrationToken)addCurrentStateChangedEvent:(WXVisualStateChangedEventHandler)del;
 - (void)removeCurrentStateChangedEvent:(EventRegistrationToken)tok;
 - (EventRegistrationToken)addCurrentStateChangingEvent:(WXVisualStateChangedEventHandler)del;
@@ -1531,7 +1532,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WXVisualStateManager : WXDependencyObject
-+ (NSMutableArray*)getVisualStateGroups:(WXFrameworkElement*)obj;
++ (NSMutableArray* /* WXVisualStateGroup* */)getVisualStateGroups:(WXFrameworkElement*)obj;
 + (WXVisualStateManager*)getCustomVisualStateManager:(WXFrameworkElement*)obj;
 + (void)setCustomVisualStateManager:(WXFrameworkElement*)obj value:(WXVisualStateManager*)value;
 + (BOOL)goToState:(WXCControl*)control stateName:(NSString*)stateName useTransitions:(BOOL)useTransitions;

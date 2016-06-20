@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDSSerialDevice, WDSErrorReceivedEventArgs, WDSPinChangedEventArgs;
 @protocol WDSISerialDeviceStatics
 , WDSIErrorReceivedEventArgs, WDSIPinChangedEventArgs, WDSISerialDevice;

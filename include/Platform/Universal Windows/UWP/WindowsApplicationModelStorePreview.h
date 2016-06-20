@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WASPStorePreviewSkuInfo, WASPStorePreviewPurchaseResults, WASPStorePreviewProductInfo, WASPStoreHardwareManufacturerInfo,
     WASPStorePreview, WASPStoreConfiguration;
 @protocol WASPIStorePreviewProductInfo
@@ -64,7 +65,6 @@ enum _WASPStoreSystemFeature {
 };
 typedef unsigned WASPStoreSystemFeature;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
@@ -108,7 +108,7 @@ WINRT_EXPORT
 @property (readonly) NSString* Description;
 @property (readonly) NSString* productId;
 @property (readonly) NSString* productType;
-@property (readonly) NSArray* skuInfoList;
+@property (readonly) NSArray* /* WASPStorePreviewSkuInfo* */ skuInfoList;
 @property (readonly) NSString* title;
 @end
 
@@ -138,7 +138,8 @@ WINRT_EXPORT
                                                  skuId:(NSString*)skuId
                                                success:(void (^)(WASPStorePreviewPurchaseResults*))success
                                                failure:(void (^)(NSError*))failure;
-+ (void)loadAddOnProductInfosAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)loadAddOnProductInfosAsyncWithSuccess:(void (^)(NSArray* /* WASPStorePreviewProductInfo* */))success
+                                      failure:(void (^)(NSError*))failure;
 @end
 
 #endif // __WASPStorePreview_DEFINED__
@@ -159,7 +160,7 @@ WINRT_EXPORT
 + (void)setStoreWebAccountId:(NSString*)webAccountId;
 + (BOOL)isStoreWebAccountId:(NSString*)webAccountId;
 + (void)filterUnsupportedSystemFeaturesAsync:(id<NSFastEnumeration> /* WASPStoreSystemFeature */)systemFeatures
-                                     success:(void (^)(NSArray*))success
+                                     success:(void (^)(NSArray* /* WASPStoreSystemFeature */))success
                                      failure:(void (^)(NSError*))failure;
 + (WASPStoreHardwareManufacturerInfo*)hardwareManufacturerInfo;
 @end

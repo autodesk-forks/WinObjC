@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUXMVisualTreeHelper, WUXMPartialMediaFailureDetectedEventArgs, WUXMMatrixHelper, WUXMCompositionTarget, WUXMDoubleCollection,
     WUXMFontFamily, WUXMGeometryCollection, WUXMGradientStopCollection, WUXMPathFigureCollection, WUXMPathSegmentCollection,
     WUXMPointCollection, WUXMRenderingEventArgs, WUXMTimelineMarkerCollection, WUXMTransformCollection, WUXMBrush, WUXMCacheMode,
@@ -31,8 +32,6 @@
     WUXMImageBrush, WUXMLinearGradientBrush, WUXMMatrixTransform, WUXMRotateTransform, WUXMScaleTransform, WUXMSkewTransform,
     WUXMTransformGroup, WUXMTranslateTransform;
 @class WUXMMatrix;
-@class RTArray_C_Double, RTArray_C_WFPoint, RTArray_C_WUXMGeometry, RTArray_C_WUXMGradientStop, RTArray_C_WUXMPathFigure,
-    RTArray_C_WUXMPathSegment, RTArray_C_WUXMTimelineMarker, RTArray_C_WUXMTransform;
 @protocol WUXMIVisualTreeHelper
 , WUXMIVisualTreeHelperStatics, WUXMIVisualTreeHelperStatics2, WUXMIPartialMediaFailureDetectedEventArgs, WUXMIMatrixHelper,
     WUXMIMatrixHelperStatics, WUXMICompositionTarget, WUXMICompositionTargetStatics, WUXMIFontFamily, WUXMIFontFamilyFactory,
@@ -208,11 +207,10 @@ enum _WUXMSweepDirection {
 };
 typedef unsigned WUXMSweepDirection;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 #include "WindowsUIXaml.h"
-#include "WindowsUIXamlControlsPrimitives.h"
 #include "WindowsUI.h"
+#include "WindowsUIXamlControlsPrimitives.h"
 #include "WindowsUIXamlMediaMedia3D.h"
 #include "WindowsMediaPlayback.h"
 #include "WindowsUICore.h"
@@ -278,19 +276,19 @@ typedef void (^WUXMTimelineMarkerRoutedEventHandler)(RTObject* sender, WUXMTimel
 
 WINRT_EXPORT
 @interface WUXMVisualTreeHelper : RTObject
-+ (id<NSFastEnumeration>)findElementsInHostCoordinatesPoint:(WFPoint*)intersectingPoint subtree:(WXUIElement*)subtree;
-+ (id<NSFastEnumeration>)findElementsInHostCoordinatesRect:(WFRect*)intersectingRect subtree:(WXUIElement*)subtree;
-+ (id<NSFastEnumeration>)findAllElementsInHostCoordinatesPoint:(WFPoint*)intersectingPoint
-                                                       subtree:(WXUIElement*)subtree
-                                            includeAllElements:(BOOL)includeAllElements;
-+ (id<NSFastEnumeration>)findAllElementsInHostCoordinatesRect:(WFRect*)intersectingRect
-                                                      subtree:(WXUIElement*)subtree
-                                           includeAllElements:(BOOL)includeAllElements;
++ (id<NSFastEnumeration> /* WXUIElement* */)findElementsInHostCoordinatesPoint:(WFPoint*)intersectingPoint subtree:(WXUIElement*)subtree;
++ (id<NSFastEnumeration> /* WXUIElement* */)findElementsInHostCoordinatesRect:(WFRect*)intersectingRect subtree:(WXUIElement*)subtree;
++ (id<NSFastEnumeration> /* WXUIElement* */)findAllElementsInHostCoordinatesPoint:(WFPoint*)intersectingPoint
+                                                                          subtree:(WXUIElement*)subtree
+                                                               includeAllElements:(BOOL)includeAllElements;
++ (id<NSFastEnumeration> /* WXUIElement* */)findAllElementsInHostCoordinatesRect:(WFRect*)intersectingRect
+                                                                         subtree:(WXUIElement*)subtree
+                                                              includeAllElements:(BOOL)includeAllElements;
 + (WXDependencyObject*)getChild:(WXDependencyObject*)reference childIndex:(int)childIndex;
 + (int)getChildrenCount:(WXDependencyObject*)reference;
 + (WXDependencyObject*)getParent:(WXDependencyObject*)reference;
 + (void)disconnectChildrenRecursive:(WXUIElement*)element;
-+ (NSArray*)getOpenPopups:(WXWindow*)window;
++ (NSArray* /* WUXCPPopup* */)getOpenPopups:(WXWindow*)window;
 @end
 
 #endif // __WUXMVisualTreeHelper_DEFINED__
@@ -1083,9 +1081,9 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WUXMLinearGradientBrush : WUXMGradientBrush
-+ (instancetype)make ACTIVATOR;
 + (WUXMLinearGradientBrush*)makeInstanceWithGradientStopCollectionAndAngle:(WUXMGradientStopCollection*)gradientStopCollection
                                                                      angle:(double)angle ACTIVATOR;
++ (instancetype)make ACTIVATOR;
 @property (retain) WFPoint* startPoint;
 @property (retain) WFPoint* endPoint;
 + (WXDependencyProperty*)endPointProperty;

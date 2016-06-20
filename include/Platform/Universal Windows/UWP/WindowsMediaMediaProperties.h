@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMMMediaRatio, WMMMediaPropertySet, WMMAudioEncodingProperties, WMMMediaEncodingSubtypes, WMMH264ProfileIds, WMMMpeg2ProfileIds,
     WMMVideoEncodingProperties, WMMImageEncodingProperties, WMMContainerEncodingProperties, WMMMediaEncodingProfile;
 @protocol WMMIMediaRatio
@@ -83,7 +84,6 @@ enum _WMMMediaMirroringOptions {
 typedef unsigned WMMMediaMirroringOptions;
 
 #include "WindowsStorage.h"
-#include "WindowsFoundation.h"
 #include "WindowsStorageStreams.h"
 
 #import <Foundation/Foundation.h>
@@ -160,8 +160,8 @@ WINRT_EXPORT
 @property (retain) NSString* subtype;
 @property (readonly) WMMMediaPropertySet* properties;
 @property (readonly) NSString* type;
-- (void)setFormatUserData:(id<NSFastEnumeration> /* uint8_t */)value;
-- (void)getFormatUserData:(id<NSFastEnumeration> /* uint8_t */*)value;
+- (void)setFormatUserData:(NSArray* /* uint8_t */)value;
+- (void)getFormatUserData:(NSArray* /* uint8_t */*)value;
 @end
 
 #endif // __WMMAudioEncodingProperties_DEFINED__
@@ -270,8 +270,8 @@ WINRT_EXPORT
 @property (readonly) WMMMediaRatio* frameRate;
 @property (readonly) WMMMediaRatio* pixelAspectRatio;
 @property int profileId;
-- (void)setFormatUserData:(id<NSFastEnumeration> /* uint8_t */)value;
-- (void)getFormatUserData:(id<NSFastEnumeration> /* uint8_t */*)value;
+- (void)setFormatUserData:(NSArray* /* uint8_t */)value;
+- (void)getFormatUserData:(NSArray* /* uint8_t */*)value;
 @end
 
 #endif // __WMMVideoEncodingProperties_DEFINED__
@@ -282,11 +282,11 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WMMImageEncodingProperties : RTObject <WMMIMediaEncodingProperties>
++ (WMMImageEncodingProperties*)createUncompressed:(WMMMediaPixelFormat)format;
++ (WMMImageEncodingProperties*)createBmp;
 + (WMMImageEncodingProperties*)createJpeg;
 + (WMMImageEncodingProperties*)createPng;
 + (WMMImageEncodingProperties*)createJpegXR;
-+ (WMMImageEncodingProperties*)createUncompressed:(WMMMediaPixelFormat)format;
-+ (WMMImageEncodingProperties*)createBmp;
 + (instancetype)make ACTIVATOR;
 @property unsigned int width;
 @property unsigned int height;

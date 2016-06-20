@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WACPContactRemovedEventArgs, WACPContactPickerUI;
 @protocol WACPIContactRemovedEventArgs
 , WACPIContactPickerUI, WACPIContactPickerUI2;
@@ -32,7 +33,6 @@ enum _WACPAddContactResult {
 };
 typedef unsigned WACPAddContactResult;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsApplicationModelContacts.h"
 #include "WindowsFoundation.h"
 
@@ -55,9 +55,9 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WACPContactPickerUI : RTObject
-@property (readonly) NSArray* desiredFields;
+@property (readonly) NSArray* /* NSString * */ desiredFields;
 @property (readonly) WACContactSelectionMode selectionMode;
-@property (readonly) NSMutableArray* desiredFieldsWithContactFieldType;
+@property (readonly) NSMutableArray* /* WACContactFieldType */ desiredFieldsWithContactFieldType;
 - (EventRegistrationToken)addContactRemovedEvent:(void (^)(WACPContactPickerUI*, WACPContactRemovedEventArgs*))del;
 - (void)removeContactRemovedEvent:(EventRegistrationToken)tok;
 - (WACPAddContactResult)addContact:(NSString*)id contact:(WACContact*)contact;

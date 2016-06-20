@@ -26,7 +26,9 @@
 #import "NSRunLoopSource.h"
 #import "NSRunLoop+Internal.h"
 
-EbrLock _displaySyncSocketLock = EBRLOCK_INITIALIZE;
+#import "CACompositor.h"
+
+pthread_mutex_t _displaySyncSocketLock = PTHREAD_MUTEX_INITIALIZER;
 EbrEvent _displaySyncEvents[32];
 int _numDisplaySyncEvents = 0;
 bool _displaySyncEnabled = false;
@@ -34,12 +36,12 @@ bool _displaySyncEnabled = false;
 bool CASignalDisplayLink() {
     bool ret = false;
 
-    EbrLockEnter(_displaySyncSocketLock);
+    pthread_mutex_lock(&_displaySyncSocketLock);
     for (int i = 0; i < _numDisplaySyncEvents; i++) {
         EbrEventSignal(_displaySyncEvents[i]);
         ret = true;
     }
-    EbrLockLeave(_displaySyncSocketLock);
+    pthread_mutex_unlock(&_displaySyncSocketLock);
 
     return ret;
 }
@@ -64,9 +66,9 @@ static IWLazyIvarLookup<EbrEvent> _LazySignaledOffset(_LazyRunLoopSource, "_sign
 static void addToUpdateList(CADisplayLink* self) {
     if (!self->_addedToUpdateList) {
         self->_addedToUpdateList = true;
-        EbrLockEnter(_displaySyncSocketLock);
+        pthread_mutex_lock(&_displaySyncSocketLock);
         _displaySyncEvents[_numDisplaySyncEvents++] = _LazySignaledOffset.member(self->_displaySyncEvent);
-        EbrLockLeave(_displaySyncSocketLock);
+        pthread_mutex_unlock(&_displaySyncSocketLock);
     }
 
     if (_numDisplaySyncEvents > 0 && !_displaySyncEnabled) {
@@ -76,7 +78,7 @@ static void addToUpdateList(CADisplayLink* self) {
 
 static void removeFromUpdateList(CADisplayLink* self) {
     if (self->_addedToUpdateList) {
-        EbrLockEnter(_displaySyncSocketLock);
+        pthread_mutex_lock(&_displaySyncSocketLock);
         for (int i = 0; i < _numDisplaySyncEvents; i++) {
             if (_displaySyncEvents[i] == _LazySignaledOffset.member(self->_displaySyncEvent)) {
                 memmove(&_displaySyncEvents[i], &_displaySyncEvents[i + 1], (_numDisplaySyncEvents - i) * sizeof(EbrEvent));
@@ -84,7 +86,7 @@ static void removeFromUpdateList(CADisplayLink* self) {
                 break;
             }
         }
-        EbrLockLeave(_displaySyncSocketLock);
+        pthread_mutex_unlock(&_displaySyncSocketLock);
     }
 
     if (_numDisplaySyncEvents <= 0 && _displaySyncEnabled) {

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WACPhoneCallHistoryEntryAddress, WACPhoneCallHistoryEntry, WACPhoneCallHistoryEntryReader, WACPhoneCallHistoryEntryQueryOptions,
     WACPhoneCallHistoryStore, WACPhoneCallHistoryManager;
 @protocol WACIPhoneCallHistoryEntry
@@ -72,7 +73,6 @@ enum _WACPhoneCallHistorySourceIdKind {
 typedef unsigned WACPhoneCallHistorySourceIdKind;
 
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -105,7 +105,7 @@ WINRT_EXPORT
 @property BOOL isIncoming;
 @property BOOL isCallerIdBlocked;
 @property BOOL isSeen;
-@property (retain) id duration;
+@property (retain) id /* WFTimeSpan* */ duration;
 @property BOOL isEmergency;
 @property BOOL isSuppressed;
 @property (retain) WFDateTime* startTime;
@@ -128,7 +128,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WACPhoneCallHistoryEntryReader : RTObject
-- (void)readBatchAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)readBatchAsyncWithSuccess:(void (^)(NSArray* /* WACPhoneCallHistoryEntry* */))success failure:(void (^)(NSError*))failure;
 @end
 
 #endif // __WACPhoneCallHistoryEntryReader_DEFINED__
@@ -141,7 +141,7 @@ WINRT_EXPORT
 @interface WACPhoneCallHistoryEntryQueryOptions : RTObject
 + (instancetype)make ACTIVATOR;
 @property WACPhoneCallHistoryEntryQueryDesiredMedia desiredMedia;
-@property (readonly) NSMutableArray* sourceIds;
+@property (readonly) NSMutableArray* /* NSString * */ sourceIds;
 @end
 
 #endif // __WACPhoneCallHistoryEntryQueryOptions_DEFINED__

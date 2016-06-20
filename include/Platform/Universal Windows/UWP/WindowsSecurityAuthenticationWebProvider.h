@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSAWPWebProviderTokenRequest, WSAWPWebProviderTokenResponse, WSAWPWebAccountClientView, WSAWPWebAccountManager,
     WSAWPWebAccountProviderRequestTokenOperation, WSAWPWebAccountProviderGetTokenSilentOperation,
     WSAWPWebAccountProviderAddAccountOperation, WSAWPWebAccountProviderManageAccountOperation,
@@ -66,12 +67,11 @@ enum _WSAWPWebAccountScope {
 };
 typedef unsigned WSAWPWebAccountScope;
 
-#include "WindowsSecurityAuthenticationWebCore.h"
 #include "WindowsSecurityCryptographyCore.h"
 #include "WindowsFoundation.h"
+#include "WindowsSecurityAuthenticationWebCore.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsSecurityCredentials.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsWebHttp.h"
 #include "WindowsSecurityAuthenticationWeb.h"
 
@@ -130,7 +130,7 @@ typedef unsigned WSAWPWebAccountScope;
 @protocol WSAWPIWebAccountProviderTokenOperation <WSAWPIWebAccountProviderOperation>
 @property (retain) WFDateTime* cacheExpirationTime;
 @property (readonly) WSAWPWebProviderTokenRequest* providerRequest;
-@property (readonly) NSMutableArray* providerResponses;
+@property (readonly) NSMutableArray* /* WSAWPWebProviderTokenResponse* */ providerResponses;
 @end
 
 #endif // __WSAWPIWebAccountProviderTokenOperation_DEFINED__
@@ -154,7 +154,7 @@ WINRT_EXPORT
 @property (readonly) WFUri* applicationCallbackUri;
 @property (readonly) WSAWCWebTokenRequest* clientRequest;
 @property (readonly) WSAWPWebAccountSelectionOptions webAccountSelectionOptions;
-@property (readonly) NSArray* webAccounts;
+@property (readonly) NSArray* /* WSCWebAccount* */ webAccounts;
 - (void)getApplicationTokenBindingKeyAsync:(WSAWTokenBindingKeyType)keyType
                                     target:(WFUri*)target
                                    success:(void (^)(WSCCCryptographicKey*))success
@@ -207,11 +207,13 @@ WINRT_EXPORT
                    success:(void (^)(WSCWebAccount*))success
                    failure:(void (^)(NSError*))failure;
 + (RTObject<WFIAsyncAction>*)deleteWebAccountAsync:(WSCWebAccount*)webAccount;
-+ (void)findAllProviderWebAccountsAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
-+ (RTObject<WFIAsyncAction>*)pushCookiesAsync:(WFUri*)uri cookies:(id<NSFastEnumeration> /* WWHHttpCookie* */)cookies;
++ (void)findAllProviderWebAccountsAsyncWithSuccess:(void (^)(NSArray* /* WSCWebAccount* */))success failure:(void (^)(NSError*))failure;
++ (RTObject<WFIAsyncAction>*)pushCookiesAsync:(WFUri*)uri cookies:(NSArray* /* WWHHttpCookie* */)cookies;
 + (RTObject<WFIAsyncAction>*)setViewAsync:(WSCWebAccount*)webAccount view:(WSAWPWebAccountClientView*)view;
 + (RTObject<WFIAsyncAction>*)clearViewAsync:(WSCWebAccount*)webAccount applicationCallbackUri:(WFUri*)applicationCallbackUri;
-+ (void)getViewsAsync:(WSCWebAccount*)webAccount success:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)getViewsAsync:(WSCWebAccount*)webAccount
+              success:(void (^)(NSArray* /* WSAWPWebAccountClientView* */))success
+              failure:(void (^)(NSError*))failure;
 + (RTObject<WFIAsyncAction>*)setWebAccountPictureAsync:(WSCWebAccount*)webAccount
                                      webAccountPicture:(RTObject<WSSIRandomAccessStream>*)webAccountPicture;
 + (RTObject<WFIAsyncAction>*)clearWebAccountPictureAsync:(WSCWebAccount*)webAccount;
@@ -239,7 +241,7 @@ WINRT_EXPORT
 @property (readonly) WSAWPWebAccountProviderOperationKind kind;
 @property (retain) WFDateTime* cacheExpirationTime;
 @property (readonly) WSAWPWebProviderTokenRequest* providerRequest;
-@property (readonly) NSMutableArray* providerResponses;
+@property (readonly) NSMutableArray* /* WSAWPWebProviderTokenResponse* */ providerResponses;
 - (void)reportUserCanceled;
 - (void)reportCompleted;
 - (void)reportError:(WSAWCWebProviderError*)value;
@@ -259,7 +261,7 @@ WINRT_EXPORT
 @property (readonly) WSAWPWebAccountProviderOperationKind kind;
 @property (retain) WFDateTime* cacheExpirationTime;
 @property (readonly) WSAWPWebProviderTokenRequest* providerRequest;
-@property (readonly) NSMutableArray* providerResponses;
+@property (readonly) NSMutableArray* /* WSAWPWebProviderTokenResponse* */ providerResponses;
 - (void)reportUserInteractionRequired;
 - (void)reportUserInteractionRequiredWithError:(WSAWCWebProviderError*)value;
 - (void)reportCompleted;
@@ -336,7 +338,7 @@ WINRT_EXPORT
 @property (retain) WFUri* uri;
 @property (readonly) WFUri* applicationCallbackUri;
 @property (readonly) WFUri* context;
-@property (readonly) NSMutableArray* cookies;
+@property (readonly) NSMutableArray* /* WWHHttpCookie* */ cookies;
 - (void)reportCompleted;
 - (void)reportError:(WSAWCWebProviderError*)value;
 @end

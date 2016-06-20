@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSDProcessDiagnosticInfo, WSDProcessDiskUsage, WSDProcessMemoryUsage, WSDProcessCpuUsage, WSDProcessMemoryUsageReport,
     WSDProcessDiskUsageReport, WSDProcessCpuUsageReport;
 @protocol WSDIProcessDiagnosticInfo
@@ -27,7 +28,6 @@
     WSDIProcessCpuUsage, WSDIProcessCpuUsageReport;
 
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -37,7 +37,7 @@
 
 WINRT_EXPORT
 @interface WSDProcessDiagnosticInfo : RTObject
-+ (NSArray*)getForProcesses;
++ (NSArray* /* WSDProcessDiagnosticInfo* */)getForProcesses;
 + (WSDProcessDiagnosticInfo*)getForCurrentProcess;
 @property (readonly) WSDProcessCpuUsage* cpuUsage;
 @property (readonly) WSDProcessDiskUsage* diskUsage;

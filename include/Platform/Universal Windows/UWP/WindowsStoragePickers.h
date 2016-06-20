@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSPFilePickerSelectedFilesArray, WSPFilePickerFileTypesOrderedMap, WSPFileExtensionVector, WSPFileOpenPicker, WSPFileSavePicker,
     WSPFolderPicker;
 @protocol WSPIFileOpenPicker
@@ -48,9 +49,8 @@ enum _WSPPickerLocationId {
 };
 typedef unsigned WSPPickerLocationId;
 
-#include "WindowsFoundationCollections.h"
-#include "WindowsFoundation.h"
 #include "WindowsStorage.h"
+#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -128,10 +128,10 @@ WINRT_EXPORT
 @property WSPPickerLocationId suggestedStartLocation;
 @property (retain) NSString* settingsIdentifier;
 @property (retain) NSString* commitButtonText;
-@property (readonly) NSMutableArray* fileTypeFilter;
+@property (readonly) NSMutableArray* /* NSString * */ fileTypeFilter;
 @property (readonly) WFCValueSet* continuationData;
 - (void)pickSingleFileAsyncWithSuccess:(void (^)(WSStorageFile*))success failure:(void (^)(NSError*))failure;
-- (void)pickMultipleFilesAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)pickMultipleFilesAsyncWithSuccess:(void (^)(NSArray* /* WSStorageFile* */))success failure:(void (^)(NSError*))failure;
 - (void)pickSingleFileAsync:(NSString*)pickerOperationId success:(void (^)(WSStorageFile*))success failure:(void (^)(NSError*))failure;
 - (void)pickSingleFileAndContinue;
 - (void)pickMultipleFilesAndContinue;
@@ -152,7 +152,7 @@ WINRT_EXPORT
 @property (retain) NSString* settingsIdentifier;
 @property (retain) NSString* defaultFileExtension;
 @property (retain) NSString* commitButtonText;
-@property (readonly) NSMutableDictionary* fileTypeChoices;
+@property (readonly) NSMutableDictionary* /* NSString *, NSMutableArray* < NSString * > */ fileTypeChoices;
 @property (readonly) WFCValueSet* continuationData;
 @property (retain) NSString* enterpriseId;
 - (void)pickSaveFileAsyncWithSuccess:(void (^)(WSStorageFile*))success failure:(void (^)(NSError*))failure;
@@ -172,7 +172,7 @@ WINRT_EXPORT
 @property WSPPickerLocationId suggestedStartLocation;
 @property (retain) NSString* settingsIdentifier;
 @property (retain) NSString* commitButtonText;
-@property (readonly) NSMutableArray* fileTypeFilter;
+@property (readonly) NSMutableArray* /* NSString * */ fileTypeFilter;
 @property (readonly) WFCValueSet* continuationData;
 - (void)pickSingleFolderAsyncWithSuccess:(void (^)(WSStorageFolder*))success failure:(void (^)(NSError*))failure;
 - (void)pickFolderAndContinue;

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUSSecondaryTileVisualElements, WUSSecondaryTile, WUSVisualElementsRequestedEventArgs, WUSVisualElementsRequest,
     WUSVisualElementsRequestDeferral;
 @protocol WUSISecondaryTile
@@ -59,7 +60,6 @@ typedef unsigned WUSForegroundText;
 #include "WindowsUIPopups.h"
 #include "WindowsFoundation.h"
 #include "WindowsUI.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -92,14 +92,17 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WUSSecondaryTile : RTObject
 + (BOOL)exists:(NSString*)tileId;
-+ (void)findAllAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
-+ (void)findAllForApplicationAsync:(NSString*)applicationId success:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
-+ (void)findAllForPackageAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)findAllAsyncWithSuccess:(void (^)(NSArray* /* WUSSecondaryTile* */))success failure:(void (^)(NSError*))failure;
++ (void)findAllForApplicationAsync:(NSString*)applicationId
+                           success:(void (^)(NSArray* /* WUSSecondaryTile* */))success
+                           failure:(void (^)(NSError*))failure;
++ (void)findAllForPackageAsyncWithSuccess:(void (^)(NSArray* /* WUSSecondaryTile* */))success failure:(void (^)(NSError*))failure;
 + (WUSSecondaryTile*)makeMinimalTile:(NSString*)tileId
                          displayName:(NSString*)displayName
                            arguments:(NSString*)arguments
                    square150x150Logo:(WFUri*)square150x150Logo
                          desiredSize:(WUSTileSize)desiredSize ACTIVATOR;
++ (instancetype)make ACTIVATOR;
 + (WUSSecondaryTile*)makeTile:(NSString*)tileId
                     shortName:(NSString*)shortName
                   displayName:(NSString*)displayName
@@ -114,7 +117,6 @@ WINRT_EXPORT
                     logoReference:(WFUri*)logoReference
                 wideLogoReference:(WFUri*)wideLogoReference ACTIVATOR;
 + (WUSSecondaryTile*)makeWithId:(NSString*)tileId ACTIVATOR;
-+ (instancetype)make ACTIVATOR;
 @property (retain) NSString* shortName;
 @property (retain) WFUri* logo;
 @property (retain) NSString* tileId;
@@ -168,7 +170,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WUSVisualElementsRequest : RTObject
-@property (readonly) NSArray* alternateVisualElements;
+@property (readonly) NSArray* /* WUSSecondaryTileVisualElements* */ alternateVisualElements;
 @property (readonly) WFDateTime* deadline;
 @property (readonly) WUSSecondaryTileVisualElements* visualElements;
 - (WUSVisualElementsRequestDeferral*)getDeferral;

@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUIIInkUnprocessedInput, WUIIInkStrokeInput, WUIIInkInputProcessingConfiguration, WUIIInkSynchronizer, WUIIInkPresenter,
     WUIIInkStrokesCollectedEventArgs, WUIIInkStrokesErasedEventArgs, WUIIInkPoint, WUIIInkDrawingAttributes, WUIIInkStrokeRenderingSegment,
     WUIIInkStroke, WUIIInkStrokeBuilder, WUIIInkRecognitionResult, WUIIInkStrokeContainer, WUIIInkRecognizer, WUIIInkRecognizerContainer,
@@ -76,13 +77,12 @@ enum _WUIIPenTipShape {
 };
 typedef unsigned WUIIPenTipShape;
 
-#include "WindowsStorageStreams.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsUICore.h"
 #include "WindowsFoundation.h"
 #include "WindowsUIInput.h"
 #include "WindowsUI.h"
 #include "WindowsFoundationNumerics.h"
+#include "WindowsStorageStreams.h"
 
 #import <Foundation/Foundation.h>
 
@@ -115,9 +115,9 @@ typedef unsigned WUIIPenTipShape;
           success:(void (^)(unsigned int))success
          progress:(void (^)(unsigned int))progress
           failure:(void (^)(NSError*))failure;
-- (void)updateRecognitionResults:(id<NSFastEnumeration> /* WUIIInkRecognitionResult* */)recognitionResults;
-- (NSArray*)getStrokes;
-- (NSArray*)getRecognitionResults;
+- (void)updateRecognitionResults:(NSArray* /* WUIIInkRecognitionResult* */)recognitionResults;
+- (NSArray* /* WUIIInkStroke* */)getStrokes;
+- (NSArray* /* WUIIInkRecognitionResult* */)getRecognitionResults;
 @end
 
 #endif // __WUIIIInkStrokeContainer_DEFINED__
@@ -130,9 +130,9 @@ typedef unsigned WUIIPenTipShape;
 - (void)setDefaultRecognizer:(WUIIInkRecognizer*)recognizer;
 - (void)recognizeAsync:(WUIIInkStrokeContainer*)strokeCollection
      recognitionTarget:(WUIIInkRecognitionTarget)recognitionTarget
-               success:(void (^)(NSArray*))success
+               success:(void (^)(NSArray* /* WUIIInkRecognitionResult* */))success
                failure:(void (^)(NSError*))failure;
-- (NSArray*)getRecognizers;
+- (NSArray* /* WUIIInkRecognizer* */)getRecognizers;
 @end
 
 #endif // __WUIIIInkRecognizerContainer_DEFINED__
@@ -199,7 +199,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WUIIInkSynchronizer : RTObject
-- (NSArray*)beginDry;
+- (NSArray* /* WUIIInkStroke* */)beginDry;
 - (void)endDry;
 @end
 
@@ -235,7 +235,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WUIIInkStrokesCollectedEventArgs : RTObject
-@property (readonly) NSArray* strokes;
+@property (readonly) NSArray* /* WUIIInkStroke* */ strokes;
 @end
 
 #endif // __WUIIInkStrokesCollectedEventArgs_DEFINED__
@@ -246,7 +246,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WUIIInkStrokesErasedEventArgs : RTObject
-@property (readonly) NSArray* strokes;
+@property (readonly) NSArray* /* WUIIInkStroke* */ strokes;
 @end
 
 #endif // __WUIIInkStrokesErasedEventArgs_DEFINED__
@@ -310,9 +310,9 @@ WINRT_EXPORT
 @property (readonly) WFRect* boundingRect;
 @property (readonly) BOOL recognized;
 @property (retain) WFNMatrix3x2* pointTransform;
-- (NSArray*)getRenderingSegments;
+- (NSArray* /* WUIIInkStrokeRenderingSegment* */)getRenderingSegments;
 - (WUIIInkStroke*)clone;
-- (NSArray*)getInkPoints;
+- (NSArray* /* WUIIInkPoint* */)getInkPoints;
 @end
 
 #endif // __WUIIInkStroke_DEFINED__
@@ -341,8 +341,8 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WUIIInkRecognitionResult : RTObject
 @property (readonly) WFRect* boundingRect;
-- (NSArray*)getTextCandidates;
-- (NSArray*)getStrokes;
+- (NSArray* /* NSString * */)getTextCandidates;
+- (NSArray* /* WUIIInkStroke* */)getStrokes;
 @end
 
 #endif // __WUIIInkRecognitionResult_DEFINED__
@@ -368,9 +368,9 @@ WINRT_EXPORT
           success:(void (^)(unsigned int))success
          progress:(void (^)(unsigned int))progress
           failure:(void (^)(NSError*))failure;
-- (void)updateRecognitionResults:(id<NSFastEnumeration> /* WUIIInkRecognitionResult* */)recognitionResults;
-- (NSArray*)getStrokes;
-- (NSArray*)getRecognitionResults;
+- (void)updateRecognitionResults:(NSArray* /* WUIIInkRecognitionResult* */)recognitionResults;
+- (NSArray* /* WUIIInkStroke* */)getStrokes;
+- (NSArray* /* WUIIInkRecognitionResult* */)getRecognitionResults;
 - (void)addStrokes:(id<NSFastEnumeration> /* WUIIInkStroke* */)strokes;
 - (void)clear;
 @end
@@ -398,9 +398,9 @@ WINRT_EXPORT
 - (void)setDefaultRecognizer:(WUIIInkRecognizer*)recognizer;
 - (void)recognizeAsync:(WUIIInkStrokeContainer*)strokeCollection
      recognitionTarget:(WUIIInkRecognitionTarget)recognitionTarget
-               success:(void (^)(NSArray*))success
+               success:(void (^)(NSArray* /* WUIIInkRecognitionResult* */))success
                failure:(void (^)(NSError*))failure;
-- (NSArray*)getRecognizers;
+- (NSArray* /* WUIIInkRecognizer* */)getRecognizers;
 @end
 
 #endif // __WUIIInkRecognizerContainer_DEFINED__
@@ -418,7 +418,9 @@ WINRT_EXPORT
 - (RTObject*)processPointerUpdate:(WUIPointerPoint*)pointerPoint;
 - (WFRect*)processPointerUp:(WUIPointerPoint*)pointerPoint;
 - (void)setDefaultDrawingAttributes:(WUIIInkDrawingAttributes*)drawingAttributes;
-- (void)recognizeAsync2:(WUIIInkRecognitionTarget)recognitionTarget success:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)recognizeAsync2:(WUIIInkRecognitionTarget)recognitionTarget
+                success:(void (^)(NSArray* /* WUIIInkRecognitionResult* */))success
+                failure:(void (^)(NSError*))failure;
 - (void)addStroke:(WUIIInkStroke*)stroke;
 - (WFRect*)deleteSelected;
 - (WFRect*)moveSelected:(WFPoint*)translation;
@@ -432,15 +434,15 @@ WINRT_EXPORT
           success:(void (^)(unsigned int))success
          progress:(void (^)(unsigned int))progress
           failure:(void (^)(NSError*))failure;
-- (void)updateRecognitionResults:(id<NSFastEnumeration> /* WUIIInkRecognitionResult* */)recognitionResults;
-- (NSArray*)getStrokes;
-- (NSArray*)getRecognitionResults;
+- (void)updateRecognitionResults:(NSArray* /* WUIIInkRecognitionResult* */)recognitionResults;
+- (NSArray* /* WUIIInkStroke* */)getStrokes;
+- (NSArray* /* WUIIInkRecognitionResult* */)getRecognitionResults;
 - (void)setDefaultRecognizer:(WUIIInkRecognizer*)recognizer;
 - (void)recognizeAsync:(WUIIInkStrokeContainer*)strokeCollection
      recognitionTarget:(WUIIInkRecognitionTarget)recognitionTarget
-               success:(void (^)(NSArray*))success
+               success:(void (^)(NSArray* /* WUIIInkRecognitionResult* */))success
                failure:(void (^)(NSError*))failure;
-- (NSArray*)getRecognizers;
+- (NSArray* /* WUIIInkRecognizer* */)getRecognizers;
 // Failed to generate member LoadAsync (Can't marshal Windows.Foundation.IAsyncActionWithProgress`1<UInt64>)
 @end
 

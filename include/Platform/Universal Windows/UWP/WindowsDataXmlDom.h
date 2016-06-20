@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDXDXmlNodeList, WDXDXmlNamedNodeMap, WDXDXmlDocument, WDXDXmlAttribute, WDXDXmlDocumentType, WDXDXmlDomImplementation,
     WDXDXmlElement, WDXDXmlDocumentFragment, WDXDXmlText, WDXDXmlComment, WDXDXmlProcessingInstruction, WDXDXmlEntityReference,
     WDXDXmlCDataSection, WDXDXmlLoadSettings, WDXDDtdNotation, WDXDDtdEntity;
@@ -47,10 +48,9 @@ enum _WDXDNodeType {
 };
 typedef unsigned WDXDNodeType;
 
-#include "WindowsStorageStreams.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorage.h"
 #include "WindowsFoundation.h"
+#include "WindowsStorageStreams.h"
 
 #import <Foundation/Foundation.h>
 

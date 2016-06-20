@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUASettingsCommand, WUAWebAccountProviderCommand, WUAWebAccountCommand, WUAWebAccountInvokedArgs, WUACredentialCommand,
     WUAAccountsSettingsPaneEventDeferral, WUAAccountsSettingsPaneCommandsRequestedEventArgs, WUAAccountsSettingsPane;
 @protocol WUAISettingsCommandFactory
@@ -51,7 +52,6 @@ typedef unsigned WUASupportedWebAccountActions;
 
 #include "WindowsFoundation.h"
 #include "WindowsUIPopups.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsSecurityCredentials.h"
 // Windows.UI.ApplicationSettings.CredentialCommandCredentialDeletedHandler
 #ifndef __WUACredentialCommandCredentialDeletedHandler__DEFINED
@@ -200,10 +200,10 @@ WINRT_EXPORT
 WINRT_EXPORT
 @interface WUAAccountsSettingsPaneCommandsRequestedEventArgs : RTObject
 @property (retain) NSString* headerText;
-@property (readonly) NSMutableArray* commands;
-@property (readonly) NSMutableArray* credentialCommands;
-@property (readonly) NSMutableArray* webAccountCommands;
-@property (readonly) NSMutableArray* webAccountProviderCommands;
+@property (readonly) NSMutableArray* /* WUASettingsCommand* */ commands;
+@property (readonly) NSMutableArray* /* WUACredentialCommand* */ credentialCommands;
+@property (readonly) NSMutableArray* /* WUAWebAccountCommand* */ webAccountCommands;
+@property (readonly) NSMutableArray* /* WUAWebAccountProviderCommand* */ webAccountProviderCommands;
 - (WUAAccountsSettingsPaneEventDeferral*)getDeferral;
 @end
 

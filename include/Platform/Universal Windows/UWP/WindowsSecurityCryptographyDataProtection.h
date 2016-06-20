@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSCDDataProtectionProvider;
 @protocol WSCDIDataProtectionProvider
 , WSCDIDataProtectionProviderFactory;

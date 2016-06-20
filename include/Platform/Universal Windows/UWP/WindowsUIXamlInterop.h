@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WUXINotifyCollectionChangedEventArgs;
 @class WUXITypeName;
 @protocol WUXIIBindableIterable

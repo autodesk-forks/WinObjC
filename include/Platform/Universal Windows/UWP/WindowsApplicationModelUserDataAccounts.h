@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WAUUserDataAccount, WAUUserDataAccountStore, WAUUserDataAccountManager;
 @protocol WAUIUserDataAccount
 , WAUIUserDataAccountStore, WAUIUserDataAccountManagerStatics;
@@ -47,7 +48,6 @@ enum _WAUUserDataAccountContentKinds {
 typedef unsigned WAUUserDataAccountContentKinds;
 
 #include "WindowsApplicationModelContacts.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsFoundation.h"
 #include "WindowsApplicationModelEmail.h"
@@ -69,10 +69,12 @@ WINRT_EXPORT
 @property (readonly) NSString* packageFamilyName;
 - (RTObject<WFIAsyncAction>*)saveAsync;
 - (RTObject<WFIAsyncAction>*)deleteAsync;
-- (void)findAppointmentCalendarsAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
-- (void)findEmailMailboxesAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
-- (void)findContactListsAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
-- (void)findContactAnnotationListsAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)findAppointmentCalendarsAsyncWithSuccess:(void (^)(NSArray* /* WAAAppointmentCalendar* */))success
+                                         failure:(void (^)(NSError*))failure;
+- (void)findEmailMailboxesAsyncWithSuccess:(void (^)(NSArray* /* WAEEmailMailbox* */))success failure:(void (^)(NSError*))failure;
+- (void)findContactListsAsyncWithSuccess:(void (^)(NSArray* /* WACContactList* */))success failure:(void (^)(NSError*))failure;
+- (void)findContactAnnotationListsAsyncWithSuccess:(void (^)(NSArray* /* WACContactAnnotationList* */))success
+                                           failure:(void (^)(NSError*))failure;
 @end
 
 #endif // __WAUUserDataAccount_DEFINED__
@@ -83,7 +85,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WAUUserDataAccountStore : RTObject
-- (void)findAccountsAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)findAccountsAsyncWithSuccess:(void (^)(NSArray* /* WAUUserDataAccount* */))success failure:(void (^)(NSError*))failure;
 - (void)getAccountAsync:(NSString*)id success:(void (^)(WAUUserDataAccount*))success failure:(void (^)(NSError*))failure;
 - (void)createAccountAsync:(NSString*)userDisplayName success:(void (^)(WAUUserDataAccount*))success failure:(void (^)(NSError*))failure;
 @end

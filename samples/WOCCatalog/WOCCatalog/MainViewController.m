@@ -41,6 +41,8 @@
 #import "AccelerateViewController.h"
 #import "CoreMotionViewController.h"
 #import "ShadowViewController.h"
+#import "UIPasteboardViewController.h"
+#import "WindowViewController.h"
 
 #ifdef WINOBJC
 #import "XamlViewController.h"
@@ -56,10 +58,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.menuItems = [NSMutableArray array];
-    
-    //CoreMotion
+
+    // CoreMotion
     [self addMenuItemViewController:[[CoreMotionViewController alloc] init] andTitle:@"CoreMotion"];
-    
+
     // Foundations tests
     [self addMenuItemViewController:[[FoundationsViewController alloc] init] andTitle:@"Foundation Tests"];
 
@@ -127,18 +129,24 @@
 
     // Basic Animation
     [self addMenuItemViewController:[[BasicAnimationViewController alloc] init] andTitle:@"Animation"];
-    
+
     // Accelerate
     [self addMenuItemViewController:[[AccelerateViewController alloc] init] andTitle:@"Accelerate"];
 
     // Shadow
     [self addMenuItemViewController:[[ShadowViewController alloc] init] andTitle:@"Shadow"];
 
+    // UIPasteboard
+    [self addMenuItemViewController:[[UIPasteboardViewController alloc] init] andTitle:@"Copy And Paste"];
+
     // XIBTest
-    UIStoryboard *board = [UIStoryboard storyboardWithName:@"XIBTest" bundle:[NSBundle mainBundle]];
-    UIViewController *controller = [board instantiateInitialViewController];
+    UIStoryboard* board = [UIStoryboard storyboardWithName:@"XIBTest" bundle:[NSBundle mainBundle]];
+    UIViewController* controller = [board instantiateInitialViewController];
 
     [self addMenuItemViewController:controller andTitle:@"XIB Test"];
+    
+    // Window
+    [self addMenuItemViewController:[[WindowViewController alloc] init] andTitle:@"Window"];
 }
 
 - (void)didReceiveMemoryWarning {

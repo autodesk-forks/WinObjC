@@ -19,18 +19,18 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDBRRfcommDeviceService, WDBRRfcommServiceId, WDBRRfcommServiceProvider;
 @protocol WDBRIRfcommServiceIdStatics
 , WDBRIRfcommServiceId, WDBRIRfcommDeviceServiceStatics, WDBRIRfcommDeviceService, WDBRIRfcommDeviceService2,
     WDBRIRfcommServiceProviderStatics, WDBRIRfcommServiceProvider;
 
-#include "WindowsDevicesBluetooth.h"
-#include "WindowsFoundation.h"
 #include "WindowsNetworkingSockets.h"
 #include "WindowsNetworking.h"
 #include "WindowsStorageStreams.h"
-#include "WindowsFoundationCollections.h"
+#include "WindowsFoundation.h"
+#include "WindowsDevicesBluetooth.h"
 
 #import <Foundation/Foundation.h>
 
@@ -58,9 +58,10 @@ WINRT_EXPORT
 @property (readonly) WNSSocketProtectionLevel protectionLevel;
 @property (readonly) WDBRRfcommServiceId* serviceId;
 @property (readonly) WDBBluetoothDevice* device;
-- (void)getSdpRawAttributesAsyncWithSuccess:(void (^)(NSDictionary*))success failure:(void (^)(NSError*))failure;
+- (void)getSdpRawAttributesAsyncWithSuccess:(void (^)(NSDictionary* /* unsigned int, RTObject<WSSIBuffer>* */))success
+                                    failure:(void (^)(NSError*))failure;
 - (void)getSdpRawAttributesWithCacheModeAsync:(WDBBluetoothCacheMode)cacheMode
-                                      success:(void (^)(NSDictionary*))success
+                                      success:(void (^)(NSDictionary* /* unsigned int, RTObject<WSSIBuffer>* */))success
                                       failure:(void (^)(NSError*))failure;
 - (void)close;
 @end
@@ -97,7 +98,7 @@ WINRT_EXPORT
 + (void)createAsync:(WDBRRfcommServiceId*)serviceId
             success:(void (^)(WDBRRfcommServiceProvider*))success
             failure:(void (^)(NSError*))failure;
-@property (readonly) NSMutableDictionary* sdpRawAttributes;
+@property (readonly) NSMutableDictionary* /* unsigned int, RTObject<WSSIBuffer>* */ sdpRawAttributes;
 @property (readonly) WDBRRfcommServiceId* serviceId;
 - (void)startAdvertising:(WNSStreamSocketListener*)listener;
 - (void)stopAdvertising;

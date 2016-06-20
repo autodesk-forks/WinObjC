@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WGCalendarIdentifiers, WGClockIdentifiers, WGNumeralSystemIdentifiers, WGCurrencyIdentifiers, WGGeographicRegion, WGLanguage,
     WGCalendar, WGApplicationLanguages;
 @protocol WGICalendarIdentifiersStatics
@@ -40,7 +41,6 @@ enum _WGDayOfWeek {
 };
 typedef unsigned WGDayOfWeek;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsFoundation.h"
 
 #import <Foundation/Foundation.h>
@@ -315,7 +315,7 @@ WINRT_EXPORT
 @property (readonly) NSString* codeThreeDigit;
 @property (readonly) NSString* codeThreeLetter;
 @property (readonly) NSString* codeTwoLetter;
-@property (readonly) NSArray* currenciesInUse;
+@property (readonly) NSArray* /* NSString * */ currenciesInUse;
 @property (readonly) NSString* displayName;
 @property (readonly) NSString* nativeName;
 @end
@@ -336,7 +336,7 @@ WINRT_EXPORT
 @property (readonly) NSString* nativeName;
 @property (readonly) NSString* script;
 + (NSString*)currentInputMethodLanguageTag;
-- (NSArray*)getExtensionSubtags:(NSString*)singleton;
+- (NSArray* /* NSString * */)getExtensionSubtags:(NSString*)singleton;
 @end
 
 #endif // __WGLanguage_DEFINED__
@@ -347,13 +347,13 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WGCalendar : RTObject
++ (WGCalendar*)makeCalendarDefaultCalendarAndClock:(id<NSFastEnumeration> /* NSString * */)languages ACTIVATOR;
++ (WGCalendar*)makeCalendar:(id<NSFastEnumeration> /* NSString * */)languages calendar:(NSString*)calendar clock:(NSString*)clock ACTIVATOR;
++ (instancetype)make ACTIVATOR;
 + (WGCalendar*)makeCalendarWithTimeZone:(id<NSFastEnumeration> /* NSString * */)languages
                                calendar:(NSString*)calendar
                                   clock:(NSString*)clock
                              timeZoneId:(NSString*)timeZoneId ACTIVATOR;
-+ (instancetype)make ACTIVATOR;
-+ (WGCalendar*)makeCalendarDefaultCalendarAndClock:(id<NSFastEnumeration> /* NSString * */)languages ACTIVATOR;
-+ (WGCalendar*)makeCalendar:(id<NSFastEnumeration> /* NSString * */)languages calendar:(NSString*)calendar clock:(NSString*)clock ACTIVATOR;
 @property int year;
 @property int second;
 @property int period;
@@ -367,7 +367,7 @@ WINRT_EXPORT
 @property (readonly) int firstSecondInThisMinute;
 @property (readonly) int firstYearInThisEra;
 @property (readonly) BOOL isDaylightSavingTime;
-@property (readonly) NSArray* languages;
+@property (readonly) NSArray* /* NSString * */ languages;
 @property (readonly) int lastDayInThisMonth;
 @property (readonly) int lastEra;
 @property (readonly) int lastHourInThisPeriod;
@@ -458,8 +458,8 @@ WINRT_EXPORT
 @interface WGApplicationLanguages : RTObject
 + (NSString*)primaryLanguageOverride;
 + (void)setPrimaryLanguageOverride:(NSString*)value;
-+ (NSArray*)languages;
-+ (NSArray*)manifestLanguages;
++ (NSArray* /* NSString * */)languages;
++ (NSArray* /* NSString * */)manifestLanguages;
 @end
 
 #endif // __WGApplicationLanguages_DEFINED__

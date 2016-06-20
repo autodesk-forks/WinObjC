@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WWHFHttpCacheControl, WWHFHttpBaseProtocolFilter;
 @protocol WWHFIHttpFilter
 , WWHFIHttpCacheControl, WWHFIHttpBaseProtocolFilter, WWHFIHttpBaseProtocolFilter2;
@@ -43,7 +44,6 @@ typedef unsigned WWHFHttpCacheWriteBehavior;
 #include "WindowsSecurityCryptographyCertificates.h"
 #include "WindowsWebHttp.h"
 #include "WindowsSecurityCredentials.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -99,7 +99,7 @@ WINRT_EXPORT
 @property BOOL allowUI;
 @property BOOL allowAutoRedirect;
 @property (readonly) WWHHttpCookieManager* cookieManager;
-@property (readonly) NSMutableArray* ignorableServerCertificateErrors;
+@property (readonly) NSMutableArray* /* WSCCChainValidationResult */ ignorableServerCertificateErrors;
 @property (readonly) WWHFHttpCacheControl* cacheControl;
 @property WWHHttpVersion maxVersion;
 - (void)sendRequestAsync:(WWHHttpRequestMessage*)request

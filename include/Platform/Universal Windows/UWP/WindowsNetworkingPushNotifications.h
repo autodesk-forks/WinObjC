@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WNPPushNotificationChannel, WNPPushNotificationReceivedEventArgs, WNPRawNotification, WNPPushNotificationChannelManager;
 @protocol WNPIPushNotificationChannelManagerStatics
 , WNPIPushNotificationChannel, WNPIPushNotificationReceivedEventArgs, WNPIRawNotification;

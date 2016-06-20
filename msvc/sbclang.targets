@@ -12,10 +12,6 @@
     </AvailableItemName>
   </ItemGroup>
 
-  <PropertyGroup>
-    <IncludeXamlCompositor Condition="'$(AppContainerApplication)' == 'true'">true</IncludeXamlCompositor>
-  </PropertyGroup>
-
   <UsingTask
     TaskName="Clang"
     AssemblyFile="ClangCompileTask.dll"/>
@@ -56,6 +52,12 @@
       <SBResourceCopy Include="$(StarboardLibDirs)\ApplicationInsights.winmd" />
       <SBResourceCopy Include="$(StarboardLibDirs)\ApplicationInsights.dll" />
       <SBResourceCopy Include="$(StarboardLibDirs)\AppInsights_Win10-UAP.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- CoreFoundation resource files -->
+      <SBResourceCopy Include="$(StarboardLibDirs)\CFCharacterSetBitmaps.bitmap" />
+      <SBResourceCopy Include="$(StarboardLibDirs)\CFUniCharPropertyDatabase.data" />
     </ItemGroup>
   </Target>
 
@@ -380,10 +382,6 @@
   </Target>
 
   <Target Name="ComputeRuntimeInputs" DependsOnTargets="ComputeClangOptions">
-    <PropertyGroup>
-      <StarboardRuntimeLib Condition="'$(IncludeXamlCompositor)' == 'true'">StarboardXaml.lib</StarboardRuntimeLib>
-      <StarboardRuntimeLib Condition="'$(IncludeSwapChainCompositor)' == 'true'">StarboardSwapChain.lib</StarboardRuntimeLib>
-    </PropertyGroup>
     <ItemGroup>
       <Link Condition="'$(StarboardLinkObjCRuntime)' == 'true'" Include="$(StarboardObjCRuntimeLib)"/>
       <Link Condition="'$(StarboardRuntimeLib)' != '' And '$(IslandwoodDRT)' == 'true'" Include="$(StarboardRuntimeLib)"/>

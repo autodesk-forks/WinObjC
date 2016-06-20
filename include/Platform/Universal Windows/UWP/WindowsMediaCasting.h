@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMCCastingSource, WMCCastingConnectionErrorOccurredEventArgs, WMCCastingDevice, WMCCastingConnection,
     WMCCastingDeviceSelectedEventArgs, WMCCastingDevicePickerFilter, WMCCastingDevicePicker;
 @protocol WMCICastingSource
@@ -59,7 +60,6 @@ typedef unsigned WMCCastingConnectionState;
 
 #include "WindowsUIPopups.h"
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsDevicesEnumeration.h"
 
@@ -161,7 +161,7 @@ WINRT_EXPORT
 @property BOOL supportsVideo;
 @property BOOL supportsPictures;
 @property BOOL supportsAudio;
-@property (readonly) NSMutableArray* supportedCastingSources;
+@property (readonly) NSMutableArray* /* WMCCastingSource* */ supportedCastingSources;
 @end
 
 #endif // __WMCCastingDevicePickerFilter_DEFINED__

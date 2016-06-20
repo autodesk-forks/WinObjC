@@ -66,7 +66,9 @@ NSString* const NSKeyValueChangeNotificationIsPriorKey = @"NSKeyValueChangeNotif
 #pragma region Keypath Observer
 @interface _NSKVOKeypathObserver () {
     long _changeDepth;
+    void* _rawObserver;
 }
+@property (nonatomic, readonly) void* _rawObserver;
 @end
 
 @implementation _NSKVOKeypathObserver
@@ -78,6 +80,7 @@ NSString* const NSKeyValueChangeNotificationIsPriorKey = @"NSKeyValueChangeNotif
     if (self = [super init]) {
         _object = object;
         objc_storeWeak(&_observer, observer);
+        _rawObserver = _observer;
         _keypath = [keypath copy];
         _options = options;
         _context = context;
@@ -94,6 +97,13 @@ NSString* const NSKeyValueChangeNotificationIsPriorKey = @"NSKeyValueChangeNotif
 
 - (id)observer {
     return objc_loadWeak(&_observer);
+}
+
+- (void*)_rawObserver {
+    // We might need to remove an observer during its own deallocation;
+    // We therefore need the ability to grab the raw observer pointer during
+    // deregistration.
+    return _rawObserver;
 }
 
 - (bool)pushWillChange {
@@ -374,7 +384,7 @@ static void _removeKeypathObserver(id object, NSString* keypath, id observer, vo
     _NSKVOObservationInfo* observationInfo = (_NSKVOObservationInfo*)[object observationInfo];
     for (_NSKVOKeyObserver* keyObserver in [observationInfo observersForKey:key]) {
         _NSKVOKeypathObserver* keypathObserver = keyObserver.keypathObserver;
-        if ([keypathObserver.keypath isEqual:keypath] && keypathObserver.object == object &&
+        if (keypathObserver._rawObserver == observer && keypathObserver.object == object && [keypathObserver.keypath isEqual:keypath] &&
             (!context || keypathObserver.context == context)) {
             _removeKeyObserver(keyObserver);
             return;
@@ -388,7 +398,15 @@ static void _removeKeypathObserver(id object, NSString* keypath, id observer, vo
 #pragma endregion
 
 #pragma region KVO Core Implementation - NSObject category
-@implementation NSObject (NSKeyValueObservation)
+
+@implementation NSObject (NSKeyValueObserving)
+/**
+@Status Interoperable
+*/
+- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary<NSString*, id>*)change context:(void*)context {
+    [NSException raise:NSInternalInconsistencyException format:@"A key-value observation notification fired, but nobody responded to it: object %@, keypath %@, change %@.", object, keyPath, change];
+}
+
 static void* s_kvoObservationInfoAssociationKey; // has no value; pointer used as an association key.
 
 /**
@@ -438,7 +456,7 @@ static void* s_kvoObservationInfoAssociationKey; // has no value; pointer used a
 /**
 @Status Interoperable
 */
-- (void)addObserver:(id)observer forKeyPath:(NSString*)keyPath options:(NSInteger)options context:(void*)context {
+- (void)addObserver:(id)observer forKeyPath:(NSString*)keyPath options:(NSKeyValueObservingOptions)options context:(void*)context {
     _NSKVOKeypathObserver* keypathObserver =
         [[[_NSKVOKeypathObserver alloc] initWithObject:self observer:observer keyPath:keyPath options:options context:context] autorelease];
     _NSKVOKeyObserver* rootObserver = _addKeypathObserver(self, keyPath, keypathObserver, nil);
@@ -474,39 +492,71 @@ static void* s_kvoObservationInfoAssociationKey; // has no value; pointer used a
     [self removeObserver:observer forKeyPath:keyPath context:NULL];
 }
 
-static void _dispatchWillChange(id object, NSString* key, NSDictionary* changeSeed) {
-    _NSKVOObservationInfo* observationInfo = (__bridge _NSKVOObservationInfo*)[object observationInfo];
+static id _valueForPendingChange(id notifyingObject, NSString* key, id rootObject, NSString* keypath, _NSKVOKeyObserver* keyObserver, NSDictionary* pendingChange) {
+    id value = nil;
+    NSIndexSet* indexes = [pendingChange objectForKey:NSKeyValueChangeIndexesKey];
+    if (!indexes) {
+        value = [rootObject valueForKeyPath:keypath];
+    } else {
+        NSArray* collection = [notifyingObject valueForKey:key];
+        NSString* restOfKeypath = keyObserver.restOfKeypath;
+        value = restOfKeypath.length > 0 ? [collection valueForKeyPath:restOfKeypath] : collection;
+        if ([value respondsToSelector:@selector(objectsAtIndexes:)]) {
+            value = [value objectsAtIndexes:indexes];
+        }
+    }
+
+    if (!value) {
+        value = [NSNull null];
+    }
+    return value;
+}
+
+static void _dispatchWillChange(id notifyingObject, NSString* key, NSDictionary* changeSeed) {
+    _NSKVOObservationInfo* observationInfo = (__bridge _NSKVOObservationInfo*)[notifyingObject observationInfo];
+
+    NSUInteger changeKind = [changeSeed[NSKeyValueChangeKindKey] unsignedIntegerValue];
     for (_NSKVOKeyObserver* keyObserver in [observationInfo observersForKey:key]) {
         _NSKVOKeypathObserver* keypathObserver = keyObserver.keypathObserver;
 
         if (![keypathObserver pushWillChange]) {
             // Skip any keypaths that are in the process of changing.
             continue;
+        } else {
+            NSKeyValueObservingOptions options = keypathObserver.options;
+            id rootObject = keypathObserver.object;
+            id observer = keypathObserver.observer;
+            NSString* keypath = keypathObserver.keypath;
+            NSMutableDictionary* change = [[changeSeed mutableCopy] autorelease];
+            void* context = keypathObserver.context;
+
+            // The reference platform does not support to-many mutations on nested keypaths.
+            // We have to treat them as to-one mutations to support aggregate functions.
+            if (changeKind != NSKeyValueChangeSetting && keyObserver.restOfKeypathObserver) {
+                // This only needs to be done in willChange because didChange derives from the existing changeset.
+                change[NSKeyValueChangeKindKey] = @(changeKind = NSKeyValueChangeSetting);
+                [change removeObjectForKey:NSKeyValueChangeIndexesKey];
+            }
+
+            if ((options & NSKeyValueObservingOptionOld) && changeKind != NSKeyValueChangeInsertion) {
+                // For to-many mutations, we can't get the old values at indexes that have not yet been inserted.
+                id oldValue = _valueForPendingChange(notifyingObject, key, rootObject, keypath, keyObserver, change);
+                [change setObject:oldValue forKey:NSKeyValueChangeOldKey];
+
+                // VSO 5051216: Implement set mutation notifications.
+            }
+
+            if ((options & NSKeyValueObservingOptionPrior)) {
+                [change setObject:@(YES) forKey:NSKeyValueChangeNotificationIsPriorKey];
+                [observer observeValueForKeyPath:keypath ofObject:rootObject change:change context:context];
+                [change removeObjectForKey:NSKeyValueChangeNotificationIsPriorKey];
+            }
+
+            keypathObserver.pendingChange = change;
         }
 
-        NSKeyValueObservingOptions options = keypathObserver.options;
-        id object = keypathObserver.object;
-        id observer = keypathObserver.observer;
-        NSString* keypath = keypathObserver.keypath;
-        NSMutableDictionary* change = [[changeSeed mutableCopy] autorelease];
-        void* context = keypathObserver.context;
-
-        if ((options & NSKeyValueObservingOptionOld)) {
-            id oldValue = [object valueForKeyPath:keypath] ?: [NSNull null];
-            [change setObject:oldValue forKey:NSKeyValueChangeOldKey];
-
-            // VSO 5051216: Implement set mutation notifications.
-        }
-
-        if ((options & NSKeyValueObservingOptionPrior)) {
-            [change setObject:@(YES) forKey:NSKeyValueChangeNotificationIsPriorKey];
-            [observer observeValueForKeyPath:keypath ofObject:object change:change context:context];
-            [change removeObjectForKey:NSKeyValueChangeNotificationIsPriorKey];
-        }
-
+        // This must happen regardless of whether we are currently notifying.
         _removeNestedObserversAndOptionallyDependents(keyObserver, false);
-
-        keypathObserver.pendingChange = change;
     }
 }
 
@@ -520,12 +570,15 @@ static void _dispatchWillChange(id object, NSString* key, NSDictionary* changeSe
     _dispatchWillChange(self, key, @{ NSKeyValueChangeKindKey : @(NSKeyValueChangeSetting) });
 }
 
-static void _dispatchDidChange(id object, NSString* key) {
-    _NSKVOObservationInfo* observationInfo = (__bridge _NSKVOObservationInfo*)[object observationInfo];
+static void _dispatchDidChange(id notifyingObject, NSString* key) {
+    _NSKVOObservationInfo* observationInfo = (__bridge _NSKVOObservationInfo*)[notifyingObject observationInfo];
     NSArray<_NSKVOKeyObserver*>* observers = [observationInfo observersForKey:key];
     NSMutableDictionary* keypathValueCache = [NSMutableDictionary dictionaryWithCapacity:[observers count]];
     for (_NSKVOKeyObserver* keyObserver in [observers reverseObjectEnumerator]) {
         _NSKVOKeypathObserver* keypathObserver = keyObserver.keypathObserver;
+
+        // This must happen regardless of whether we are currently notifying.
+        _addNestedObserversAndOptionallyDependents(keyObserver, false);
 
         if (![keypathObserver popDidChange]) {
             // Skip any keypaths that are in the process of changing.
@@ -533,16 +586,17 @@ static void _dispatchDidChange(id object, NSString* key) {
         }
 
         NSKeyValueObservingOptions options = keypathObserver.options;
-        id object = keypathObserver.object;
+        id rootObject = keypathObserver.object;
         id observer = keypathObserver.observer;
         NSString* keypath = keypathObserver.keypath;
         NSMutableDictionary* change = keypathObserver.pendingChange;
         void* context = keypathObserver.context;
 
-        if ((options & NSKeyValueObservingOptionNew)) {
+        if ((options & NSKeyValueObservingOptionNew) && [change[NSKeyValueChangeKindKey] integerValue] != NSKeyValueChangeRemoval) {
+            // For to-many mutations, we can't get the new values at indexes that have been deleted.
             id newValue = [keypathValueCache objectForKey:keypath];
             if (!newValue) {
-                newValue = [object valueForKeyPath:keypath] ?: [NSNull null];
+                newValue = _valueForPendingChange(notifyingObject, key, rootObject, keypath, keyObserver, change);
                 [keypathValueCache setObject:newValue forKey:keypath];
             }
             [change setObject:newValue forKey:NSKeyValueChangeNewKey];
@@ -550,9 +604,8 @@ static void _dispatchDidChange(id object, NSString* key) {
             // VSO 5051216: Implement set mutation notifications.
         }
 
-        [observer observeValueForKeyPath:keypath ofObject:object change:change context:context];
+        [observer observeValueForKeyPath:keypath ofObject:rootObject change:change context:context];
 
-        _addNestedObserversAndOptionallyDependents(keyObserver, false);
         keypathObserver.pendingChange = nil;
     }
 }
@@ -568,16 +621,36 @@ static void _dispatchDidChange(id object, NSString* key) {
 }
 
 /**
-@Status Stub
+@Status Interoperable
 */
 - (void)willChange:(NSKeyValueChange)change valuesAtIndexes:(NSIndexSet*)indexes forKey:(NSString*)key {
+    if (![self observationInfo]) {
+        return;
+    }
+    _dispatchWillChange(self, key, @{ NSKeyValueChangeKindKey: @(change), NSKeyValueChangeIndexesKey: indexes });
+}
+
+/**
+@Status Interoperable
+*/
+- (void)didChange:(NSKeyValueChange)change valuesAtIndexes:(NSIndexSet*)indexes forKey:(NSString*)key {
+    if (![self observationInfo]) {
+        return;
+    }
+    _dispatchDidChange(self, key);
+}
+
+/**
+ @Status Stub
+*/
+- (void)willChangeValueForKey:(NSString*)key withSetMutation:(NSKeyValueSetMutationKind)mutationKind usingObjects:(NSSet*)options {
     UNIMPLEMENTED();
 }
 
 /**
-@Status Stub
+ @Status Stub
 */
-- (void)didChange:(NSKeyValueChange)change valuesAtIndexes:(NSIndexSet*)indexes forKey:(NSString*)key {
+- (void)didChangeValueForKey:(NSString*)key withSetMutation:(NSKeyValueSetMutationKind)mutationKind usingObjects:(NSSet*)options {
     UNIMPLEMENTED();
 }
 @end

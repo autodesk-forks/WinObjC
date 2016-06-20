@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WAWSWalletItemSystemStore, WAWSWalletManagerSystem;
 @protocol WAWSIWalletItemSystemStore
 , WAWSIWalletItemSystemStore2, WAWSIWalletManagerSystemStatics;
@@ -32,10 +33,9 @@ enum _WAWSWalletItemAppAssociation {
 };
 typedef unsigned WAWSWalletItemAppAssociation;
 
+#include "WindowsApplicationModelWallet.h"
 #include "WindowsFoundation.h"
 #include "WindowsStorageStreams.h"
-#include "WindowsFoundationCollections.h"
-#include "WindowsApplicationModelWallet.h"
 
 #import <Foundation/Foundation.h>
 
@@ -47,7 +47,7 @@ WINRT_EXPORT
 @interface WAWSWalletItemSystemStore : RTObject
 - (EventRegistrationToken)addItemsChangedEvent:(void (^)(WAWSWalletItemSystemStore*, RTObject*))del;
 - (void)removeItemsChangedEvent:(EventRegistrationToken)tok;
-- (void)getItemsAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
+- (void)getItemsAsyncWithSuccess:(void (^)(NSArray* /* WAWWalletItem* */))success failure:(void (^)(NSError*))failure;
 - (RTObject<WFIAsyncAction>*)deleteAsync:(WAWWalletItem*)item;
 - (void)importItemAsync:(RTObject<WSSIRandomAccessStreamReference>*)stream
                 success:(void (^)(WAWWalletItem*))success

@@ -19,15 +19,14 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WSUAdvertisingManager, WSUUserProfilePersonalizationSettings, WSUGlobalizationPreferences, WSUFirstSignInSettings;
 @protocol WSUIAdvertisingManagerStatics
 , WSUIUserProfilePersonalizationSettings, WSUIUserProfilePersonalizationSettingsStatics, WSUIGlobalizationPreferencesStatics,
     WSUIFirstSignInSettings, WSUIFirstSignInSettingsStatics;
 
 #include "WindowsStorage.h"
-#include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 #include "WindowsGlobalization.h"
 
 #import <Foundation/Foundation.h>
@@ -63,11 +62,11 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WSUGlobalizationPreferences : RTObject
-+ (NSArray*)calendars;
-+ (NSArray*)clocks;
-+ (NSArray*)currencies;
++ (NSArray* /* NSString * */)calendars;
++ (NSArray* /* NSString * */)clocks;
++ (NSArray* /* NSString * */)currencies;
 + (NSString*)homeGeographicRegion;
-+ (NSArray*)languages;
++ (NSArray* /* NSString * */)languages;
 + (WGDayOfWeek)weekStartsOn;
 @end
 

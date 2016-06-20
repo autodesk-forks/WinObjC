@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WNPProximityMessage, WNPProximityDevice, WNPTriggeredConnectionStateChangedEventArgs, WNPPeerInformation,
     WNPConnectionRequestedEventArgs, WNPPeerWatcher, WNPPeerFinder;
 @protocol WNPIProximityMessage
@@ -65,7 +66,6 @@ enum _WNPPeerRole {
 };
 typedef unsigned WNPPeerRole;
 
-#include "WindowsFoundationCollections.h"
 #include "WindowsStorageStreams.h"
 #include "WindowsFoundation.h"
 #include "WindowsNetworking.h"
@@ -235,12 +235,12 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WNPPeerFinder : RTObject
++ (WNPPeerWatcher*)createWatcher;
 + (void)start;
 + (void)startWithMessage:(NSString*)peerMessage;
 + (void)stop;
-+ (void)findAllPeersAsyncWithSuccess:(void (^)(NSArray*))success failure:(void (^)(NSError*))failure;
++ (void)findAllPeersAsyncWithSuccess:(void (^)(NSArray* /* WNPPeerInformation* */))success failure:(void (^)(NSError*))failure;
 + (void)connectAsync:(WNPPeerInformation*)peerInformation success:(void (^)(WNSStreamSocket*))success failure:(void (^)(NSError*))failure;
-+ (WNPPeerWatcher*)createWatcher;
 + (NSString*)displayName;
 + (void)setDisplayName:(NSString*)value;
 + (BOOL)allowWiFiDirect;
@@ -249,7 +249,7 @@ WINRT_EXPORT
 + (void)setAllowInfrastructure:(BOOL)value;
 + (BOOL)allowBluetooth;
 + (void)setAllowBluetooth:(BOOL)value;
-+ (NSMutableDictionary*)alternateIdentities;
++ (NSMutableDictionary* /* NSString *, NSString * */)alternateIdentities;
 + (WNPPeerDiscoveryTypes)supportedDiscoveryTypes;
 + (WNPPeerRole)role;
 + (void)setRole:(WNPPeerRole)value;

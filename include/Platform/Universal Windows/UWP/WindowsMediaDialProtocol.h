@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WMDDialAppStateDetails, WMDDialApp, WMDDialDevice, WMDDialDeviceSelectedEventArgs, WMDDialDisconnectButtonClickedEventArgs,
     WMDDialDevicePickerFilter, WMDDialDevicePicker;
 @protocol WMDIDialAppStateDetails
@@ -67,7 +68,6 @@ typedef unsigned WMDDialDeviceDisplayStatus;
 #include "WindowsDevicesEnumeration.h"
 #include "WindowsUIPopups.h"
 #include "WindowsFoundation.h"
-#include "WindowsFoundationCollections.h"
 
 #import <Foundation/Foundation.h>
 
@@ -140,7 +140,7 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WMDDialDevicePickerFilter : RTObject
-@property (readonly) NSMutableArray* supportedAppNames;
+@property (readonly) NSMutableArray* /* NSString * */ supportedAppNames;
 @end
 
 #endif // __WMDDialDevicePickerFilter_DEFINED__

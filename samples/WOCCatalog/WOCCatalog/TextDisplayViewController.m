@@ -206,6 +206,9 @@ typedef enum { shapeRectangle, shapeTriangle } ShapeType;
     title = @"UITextView with 18pt Ariel Font Scrollable White Text";
     [rows addObject:[self makeTestCellWithTitle:title WithSubUIView:[self basicUITextView]]];
 
+    title = @"UITextView with 18pt Ariel Font Scrollable Red Text";
+    [rows addObject:[self makeTestCellWithTitle:title WithSubUIView:[self basicUITextView2]]];
+
     title = @"Red Bold System Font Of Size 16";
     [rows addObject:[self makeTestCellWithTitle:title WithAccessoryUIView:[self makeTextDrawer:10]]];
 
@@ -299,6 +302,25 @@ typedef enum { shapeRectangle, shapeTriangle } ShapeType;
     rectangleShape.offset = CGPointMake(50, 140);
     [uiTextView addSubview:triangleShape];
     [uiTextView addSubview:rectangleShape];
+
+    return uiTextView;
+}
+
+- (UITextView*)basicUITextView2 {
+    UITextView* uiTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, DefaultWidthOfDrawArea, 300)];
+    uiTextView.font = [UIFont fontWithName:@"Arial" size:18.0];
+    uiTextView.backgroundColor = [UIColor whiteColor];
+
+    uiTextView.text = TestParagraph;
+
+    //intentionally setting text color after setting text
+    uiTextView.textColor = [UIColor blueColor];
+
+    uiTextView.returnKeyType = UIReturnKeyDefault;
+    uiTextView.keyboardType = UIKeyboardTypeDefault;
+    uiTextView.scrollEnabled = YES;
+    uiTextView.editable = YES;
+    uiTextView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
     return uiTextView;
 }
@@ -466,7 +488,7 @@ typedef enum { shapeRectangle, shapeTriangle } ShapeType;
 
     // font 1
     NSURL* url = [NSURL fileURLWithPath:@"C:/Windows/Fonts/KUNSTLER.TTF"];
-    bool result = CTFontManagerRegisterFontsForURL((CFURLRef)(url), kCTFontManagerScopeProcess, NULL);
+    bool result = CTFontManagerRegisterFontsForURL((__bridge CFURLRef)(url), kCTFontManagerScopeProcess, NULL);
     if (result) {
         UIFont* font = [UIFont fontWithName:@"Kunstler Script" size:22.0];
         CTTypesetterRef typesetter =
@@ -477,7 +499,7 @@ typedef enum { shapeRectangle, shapeTriangle } ShapeType;
     }
     // font 2
     url = [NSURL fileURLWithPath:@"C:/Windows/Fonts/GOUDYSTO.TTF"];
-    result = CTFontManagerRegisterFontsForURL((CFURLRef)(url), kCTFontManagerScopeProcess, NULL);
+    result = CTFontManagerRegisterFontsForURL((__bridge CFURLRef)(url), kCTFontManagerScopeProcess, NULL);
     if (result) {
         UIFont* font = [UIFont fontWithName:@"Goudy Stout" size:22.0];
         CTTypesetterRef typesetter =
@@ -489,7 +511,7 @@ typedef enum { shapeRectangle, shapeTriangle } ShapeType;
     }
     // font 3
     url = [NSURL fileURLWithPath:@"C:/Windows/Fonts/HARLOWSI.TTF"];
-    result = CTFontManagerRegisterFontsForURL((CFURLRef)(url), kCTFontManagerScopeProcess, NULL);
+    result = CTFontManagerRegisterFontsForURL((__bridge CFURLRef)(url), kCTFontManagerScopeProcess, NULL);
     if (result) {
         UIFont* font = [UIFont fontWithName:@"Harlow Solid Italic" size:22.0];
         CTTypesetterRef typesetter =

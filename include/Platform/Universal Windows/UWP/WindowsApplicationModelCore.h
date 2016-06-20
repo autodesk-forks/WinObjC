@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WACAppListEntry, WACCoreApplication, WACCoreApplicationView, WACCoreApplicationViewTitleBar, WACUnhandledErrorDetectedEventArgs,
     WACHostedViewClosingEventArgs, WACUnhandledError;
 @protocol WACIAppListEntry
@@ -30,8 +31,8 @@
 
 #include "WindowsFoundationCollections.h"
 #include "WindowsApplicationModel.h"
-#include "WindowsFoundation.h"
 #include "WindowsUICore.h"
+#include "WindowsFoundation.h"
 #include "WindowsApplicationModelActivation.h"
 
 #import <Foundation/Foundation.h>
@@ -89,19 +90,19 @@ WINRT_EXPORT
 
 WINRT_EXPORT
 @interface WACCoreApplication : RTObject
++ (void)exit;
++ (void)incrementApplicationUseCount;
++ (void)decrementApplicationUseCount;
 + (WACCoreApplicationView*)createNewViewFromMainView;
 + (WACCoreApplicationView*)createNewView:(NSString*)runtimeType entryPoint:(NSString*)entryPoint;
 + (WACCoreApplicationView*)createNewViewWithViewSource:(RTObject<WACIFrameworkViewSource>*)viewSource;
 + (WACCoreApplicationView*)getCurrentView;
 + (void)run:(RTObject<WACIFrameworkViewSource>*)viewSource;
 + (void)runWithActivationFactories:(RTObject<WFIGetActivationFactory>*)activationFactoryCallback;
-+ (void)incrementApplicationUseCount;
-+ (void)decrementApplicationUseCount;
-+ (void)exit;
 + (NSString*)id;
 + (RTObject<WFCIPropertySet>*)properties;
 + (WACCoreApplicationView*)mainView;
-+ (NSArray*)views;
++ (NSArray* /* WACCoreApplicationView* */)views;
 + (EventRegistrationToken)addUnhandledErrorDetectedEvent:(void (^)(RTObject*, WACUnhandledErrorDetectedEventArgs*))del;
 + (void)removeUnhandledErrorDetectedEvent:(EventRegistrationToken)tok;
 + (EventRegistrationToken)addExitingEvent:(void (^)(RTObject*, RTObject*))del;

@@ -77,6 +77,24 @@ struct StringTraits<std::wstring> {
         return NarrowToWide(value.c_str(), value.length(), codePage);
     }
 
+#ifdef __OBJC__
+
+    // Performs a conversion from NSString to std::wstring using the specified code page
+    static CreationType NarrowToWide(NSString* objcString, unsigned int codePage) {
+        const UniChar* rawString = CFStringGetCharactersPtr(static_cast<CFStringRef>(objcString));
+
+        if (rawString) {
+            return std::wstring(reinterpret_cast<const wchar_t*>(rawString), CFStringGetLength(static_cast<CFStringRef>(objcString)));
+        } else {
+            std::wstring characters;
+            characters.resize([objcString length]);
+            [objcString getCharacters:reinterpret_cast<unichar*>(&characters[0])];
+            return characters;
+        }
+    }
+
+#endif // __OBJC__
+
     // Returns a const pointer to the start of the buffer
     static const wchar_t* Data(const std::wstring& string) {
         return string.c_str();
@@ -183,8 +201,22 @@ struct StringTraits<HSTRING> {
 
     // Performs a conversion from NSString to HSTRING using the specified code page
     static CreationType NarrowToWide(NSString* objcString, unsigned int codePage) {
-        const char* rawNSString = [objcString UTF8String];
-        return NarrowToWide(rawNSString, codePage);
+        const UniChar* rawString = CFStringGetCharactersPtr(static_cast<CFStringRef>(objcString));
+
+        Microsoft::WRL::Wrappers::HString result;
+        if (rawString) {
+            result.Set(reinterpret_cast<const wchar_t*>(rawString), CFStringGetLength(static_cast<CFStringRef>(objcString)));
+        } else {
+            unsigned int length = [objcString length];
+
+            if (length > 0) {
+                std::vector<unichar*> characters(length);
+                [objcString getCharacters:reinterpret_cast<unichar*>(&characters[0])];
+                result.Set(reinterpret_cast<const wchar_t*>(characters.data()));
+            }
+        }
+
+        return result;
     }
 
 #endif // __OBJC__
@@ -383,6 +415,12 @@ inline size_t length(const wchar_t* string) {
 // Returns the length of a narrow raw string pointer
 inline size_t length(const char* string) {
     return ::strlen(string);
+}
+
+// Checks if the string is empty
+template <typename T>
+bool IsEmpty(T& string) {
+    return Private::StringTraits<T>::IsEmpty(string);
 }
 
 // Find and replace substrings in a string

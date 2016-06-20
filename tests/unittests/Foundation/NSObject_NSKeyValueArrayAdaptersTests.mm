@@ -14,8 +14,8 @@
 //
 //******************************************************************************
 
-#include <TestFramework.h>
 #import <Foundation/Foundation.h>
+#include <TestFramework.h>
 
 @interface TestArrayAdapterObject : NSObject {
     NSMutableArray* alreadyMutable;
@@ -63,20 +63,20 @@
 }
 @end
 
-TEST(Foundation, NSObject_KeyPathLookup) {
+TEST(NSObject, KeyPathLookup) {
     NSDictionary* testDictionary = @{ @"key" : @{ @"subkey" : @{ @"subkey2" : @(1) } } };
 
     EXPECT_OBJCEQ(@(1), [testDictionary valueForKeyPath:@"key.subkey.subkey2"]);
 }
 
-TEST(Foundation, NSObject_KVCArrayAdapters) {
+TEST(NSObject, KVCArrayAdapters) {
     TestArrayAdapterObject* testObject = [[[TestArrayAdapterObject alloc] init] autorelease];
 
     NSArray* fakeCollection = [testObject valueForKey:@"fakeCollection"];
     EXPECT_OBJCEQ(@(3), [fakeCollection objectAtIndex:3]);
 }
 
-TEST(Foundation, NSObject_KVCArrayMutableAdapters) {
+TEST(NSObject, KVCArrayMutableAdapters) {
     TestArrayAdapterObject* testObject = [[[TestArrayAdapterObject alloc] init] autorelease];
     NSMutableArray* fakeMutableCollection = [testObject mutableArrayValueForKey:@"fakeMutableCollection"];
     EXPECT_NO_THROW([fakeMutableCollection addObject:@(10)]);
@@ -107,23 +107,7 @@ TEST(Foundation, NSObject_KVCArrayMutableAdapters) {
     EXPECT_OBJCEQ(@"Hello", [[testObject valueForKey:@"backedByIvar"] firstObject]);
 }
 
-TEST(Foundation, NSUserDefaults_KVCArray) {
-    [[NSUserDefaults standardUserDefaults] setObject:@[ @"User Preference 1" ] forKey:@"userPref1"];
-    NSMutableArray* mutableSetting = [[NSUserDefaults standardUserDefaults] mutableArrayValueForKeyPath:@"userPref1"];
-    EXPECT_OBJCNE(nil, mutableSetting);
-    EXPECT_NO_THROW([mutableSetting addObject:@"Another"]);
-    EXPECT_TRUE([[[NSUserDefaults standardUserDefaults] objectForKey:@"userPref1"] containsObject:@"Another"]);
-
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"nonexistentPreference"];
-    mutableSetting = [[NSUserDefaults standardUserDefaults] mutableArrayValueForKeyPath:@"nonexistentPreference"];
-    EXPECT_OBJCNE(nil, mutableSetting);
-    EXPECT_NO_THROW([mutableSetting addObject:@"Another"]);
-    EXPECT_TRUE([[[NSUserDefaults standardUserDefaults] objectForKey:@"nonexistentPreference"] containsObject:@"Another"]);
-
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-TEST(Foundation, NSObject_KVCArrayChangePropagation) {
+TEST(NSObject, KVCArrayChangePropagation) {
     NSMutableDictionary* dictionary = [NSMutableDictionary dictionary];
     [dictionary setObject:@[ @"1" ] forKey:@"array"];
 
@@ -137,7 +121,7 @@ TEST(Foundation, NSObject_KVCArrayChangePropagation) {
     EXPECT_OBJCEQ(@"2", [mutableVersionOfDictionaryArray objectAtIndex:0]);
 }
 
-TEST(Foundation, NSObject_KVCArrayAutovivification) {
+TEST(NSObject, KVCArrayAutovivification) {
     NSMutableDictionary* dictionary = [NSMutableDictionary dictionary];
     NSMutableArray* nonexistentMutableArray = [dictionary mutableArrayValueForKey:@"new"];
     EXPECT_NO_THROW([nonexistentMutableArray addObject:@"Hello"]);
@@ -156,9 +140,22 @@ TEST(Foundation, NSObject_KVCArrayAutovivification) {
 TEST(Foundation, NSObject_KVCSetValuesForKeysWithDictionary) {
     TestKVCObject* testObject = [[[TestKVCObject alloc] init] autorelease];
     testObject.key2 = @"key2Value";
-    NSDictionary* dictionary = @{ @"key1" : @"key1Value", @"key2": [NSNull null] };
+    NSDictionary* dictionary = @{ @"key1" : @"key1Value", @"key2" : [NSNull null] };
 
     EXPECT_NO_THROW([testObject setValuesForKeysWithDictionary:dictionary]);
     EXPECT_OBJCEQ(@"key1Value", testObject.key1);
     EXPECT_EQ(nil, testObject.key2);
+}
+
+TEST(Foundation, NSObject_KVCDictionaryWithValuesForKeys) {
+    TestKVCObject* testObject = [[[TestKVCObject alloc] init] autorelease];
+    NSDictionary* dictionary = @{ @"key1" : @"key1Value", @"key2" : [NSNull null] };
+
+    EXPECT_NO_THROW([testObject setValuesForKeysWithDictionary:dictionary]);
+
+    NSArray* array = @[ @"key1", @"key2" ];
+    NSDictionary* results = [testObject dictionaryWithValuesForKeys:array];
+
+    ASSERT_OBJCEQ(results[@"key1"], @"key1Value");
+    ASSERT_OBJCEQ(results[@"key2"], [NSNull null]);
 }

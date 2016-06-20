@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "interopBase.h"
+#include <UWP/interopBase.h>
+
 @class WDLLamp, WDLLampAvailabilityChangedEventArgs;
 @protocol WDLILampStatics
 , WDLILampAvailabilityChangedEventArgs, WDLILamp;

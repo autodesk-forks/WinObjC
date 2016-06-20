@@ -183,12 +183,12 @@ UIKIT_EXPORT_CLASS
 + (UIUserInterfaceLayoutDirection)userInterfaceLayoutDirectionForSemanticContentAttribute:(UISemanticContentAttribute)attribute STUB_METHOD;
 + (void)addKeyframeWithRelativeStartTime:(double)frameStartTime
                         relativeDuration:(double)frameDuration
-                              animations:(void (^)(void))animations STUB_METHOD;
+                              animations:(void (^)(void))animations;
 + (void)animateKeyframesWithDuration:(NSTimeInterval)duration
                                delay:(NSTimeInterval)delay
                              options:(UIViewKeyframeAnimationOptions)options
                           animations:(void (^)(void))animations
-                          completion:(void (^)(BOOL))completion STUB_METHOD;
+                          completion:(void (^)(BOOL))completion;
 + (void)animateWithDuration:(NSTimeInterval)duration animations:(void (^)(void))animations completion:(void (^)(BOOL finished))completion;
 + (void)animateWithDuration:(NSTimeInterval)duration animations:(void (^)(void))animations;
 + (void)animateWithDuration:(NSTimeInterval)duration
@@ -210,7 +210,7 @@ UIKIT_EXPORT_CLASS
                        options:(UIViewAnimationOptions)options
                     animations:(void (^)(void))parallelAnimations
                     completion:(void (^)(BOOL))completion STUB_METHOD;
-+ (void)performWithoutAnimation:(void (^)(void))actionsWithoutAnimation STUB_METHOD;
++ (void)performWithoutAnimation:(void (^)(void))actionsWithoutAnimation;
 + (void)setAnimationBeginsFromCurrentState:(BOOL)beginFromCurrentState;
 + (void)setAnimationCurve:(UIViewAnimationCurve)curve;
 + (void)setAnimationDelay:(NSTimeInterval)delay;
@@ -258,10 +258,8 @@ UIKIT_EXPORT_CLASS
 - (UILayoutPriority)contentCompressionResistancePriorityForAxis:(UILayoutConstraintAxis)axis;
 - (UILayoutPriority)contentHuggingPriorityForAxis:(UILayoutConstraintAxis)axis;
 - (UIView*)hitTest:(CGPoint)point withEvent:(UIEvent*)event;
-- (UIView*)resizableSnapshotViewFromRect:(CGRect)rect
-                      afterScreenUpdates:(BOOL)afterUpdates
-                           withCapInsets:(UIEdgeInsets)capInsets STUB_METHOD;
-- (UIView*)snapshotViewAfterScreenUpdates:(BOOL)afterUpdates STUB_METHOD;
+- (UIView*)resizableSnapshotViewFromRect:(CGRect)rect afterScreenUpdates:(BOOL)afterUpdates withCapInsets:(UIEdgeInsets)capInsets;
+- (UIView*)snapshotViewAfterScreenUpdates:(BOOL)afterUpdates;
 - (UIView*)viewForBaselineLayout;
 - (UIView*)viewWithTag:(NSInteger)tag;
 - (UIViewPrintFormatter*)viewPrintFormatter STUB_METHOD;
@@ -269,7 +267,7 @@ UIKIT_EXPORT_CLASS
 - (void)addConstraint:(NSLayoutConstraint*)constraint;
 - (void)addConstraints:(NSArray*)constraints;
 - (void)addGestureRecognizer:(UIGestureRecognizer*)gestureRecognizer;
-- (void)addLayoutGuide:(UILayoutGuide*)layoutGuide STUB_METHOD;
+- (void)addLayoutGuide:(UILayoutGuide*)layoutGuide;
 - (void)addMotionEffect:(UIMotionEffect*)effect STUB_METHOD;
 - (void)addSubview:(UIView*)subview;
 - (void)bringSubviewToFront:(UIView*)subview;
@@ -293,7 +291,7 @@ UIKIT_EXPORT_CLASS
 - (void)removeConstraints:(NSArray*)constraints;
 - (void)removeFromSuperview;
 - (void)removeGestureRecognizer:(UIGestureRecognizer*)gestureRecognizer;
-- (void)removeLayoutGuide:(UILayoutGuide*)layoutGuide STUB_METHOD;
+- (void)removeLayoutGuide:(UILayoutGuide*)layoutGuide;
 - (void)removeMotionEffect:(UIMotionEffect*)effect STUB_METHOD;
 - (void)sendSubviewToBack:(UIView*)subview;
 - (void)setContentCompressionResistancePriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;
@@ -348,18 +346,18 @@ UIKIT_EXPORT_CLASS
 @property (readonly, getter=isFocused, nonatomic) BOOL focused STUB_PROPERTY;
 @property (readonly, nonatomic) NSArray* constraints;
 @property (readonly, nonatomic, strong) UILayoutGuide* readableContentGuide STUB_PROPERTY;
-@property (readonly, strong) NSLayoutDimension* heightAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutDimension* widthAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutXAxisAnchor* centerXAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutXAxisAnchor* leadingAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutXAxisAnchor* leftAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutXAxisAnchor* rightAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutXAxisAnchor* trailingAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutYAxisAnchor* bottomAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutYAxisAnchor* centerYAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutYAxisAnchor* firstBaselineAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutYAxisAnchor* lastBaselineAnchor STUB_PROPERTY;
-@property (readonly, strong) NSLayoutYAxisAnchor* topAnchor STUB_PROPERTY;
+@property (readonly, strong) NSLayoutDimension* heightAnchor;
+@property (readonly, strong) NSLayoutDimension* widthAnchor;
+@property (readonly, strong) NSLayoutXAxisAnchor* centerXAnchor;
+@property (readonly, strong) NSLayoutXAxisAnchor* leadingAnchor;
+@property (readonly, strong) NSLayoutXAxisAnchor* leftAnchor;
+@property (readonly, strong) NSLayoutXAxisAnchor* rightAnchor;
+@property (readonly, strong) NSLayoutXAxisAnchor* trailingAnchor;
+@property (readonly, strong) NSLayoutYAxisAnchor* bottomAnchor;
+@property (readonly, strong) NSLayoutYAxisAnchor* centerYAnchor;
+@property (readonly, strong) NSLayoutYAxisAnchor* firstBaselineAnchor;
+@property (readonly, strong) NSLayoutYAxisAnchor* lastBaselineAnchor;
+@property (readonly, strong) NSLayoutYAxisAnchor* topAnchor;
 @property (readonly, strong) UILayoutGuide* layoutMarginsGuide STUB_PROPERTY;
 @property (readonly, strong) UIView* viewForFirstBaselineLayout STUB_PROPERTY;
 @property (readonly, strong) UIView* viewForLastBaselineLayout STUB_PROPERTY;
