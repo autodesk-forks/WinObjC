@@ -1137,7 +1137,7 @@ static void printViews(id curView, int level) {
     for (int i = count - 1; i >= 0; i--) {
         UIGestureRecognizer* curGesture = [currentlyTrackingGesturesList objectAtIndex:i];
 		UIGestureRecognizerState state = curGesture.state;
-		if ( state != UIGestureRecognizerStatePossible) {
+		if ( state != UIGestureRecognizerStatePossible && state != UIGestureRecognizerStateCancelled) {
 			activeGesture = curGesture;
 			break;
 		}
