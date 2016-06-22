@@ -1239,7 +1239,7 @@ void CGContextCairo::CGContextFillPath() {
     cairo_set_matrix(_drawContext, &m);
     setFillColorSource();
     cairo_set_fill_rule(_drawContext, CAIRO_FILL_RULE_WINDING);
-    cairo_fill_preserve(_drawContext);
+    cairo_fill(_drawContext);
 
     cairo_restore(_drawContext);
     UNLOCK_CAIRO();
@@ -1267,7 +1267,7 @@ void CGContextCairo::CGContextEOFillPath() {
     cairo_set_matrix(_drawContext, &m);
     setFillColorSource();
     cairo_set_fill_rule(_drawContext, CAIRO_FILL_RULE_EVEN_ODD);
-    cairo_fill_preserve(_drawContext);
+    cairo_fill(_drawContext);
 
     cairo_restore(_drawContext);
     UNLOCK_CAIRO();
