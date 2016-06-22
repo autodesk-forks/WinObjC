@@ -38,6 +38,7 @@ typedef struct {
     float fontSize;
     CGAffineTransform curTextMatrix;
     CGBlendMode curBlendMode;
+    float alpha;
 
     CGSize shadowOffset;
     float shadowBlur;

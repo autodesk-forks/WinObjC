@@ -80,6 +80,7 @@ CGContextImpl::CGContextImpl(CGContextRef base, CGImageRef destinationImage) {
     curState->curStrokeColor.a = 1.0f;
     curState->textDrawingMode = kCGTextFill;
     curState->curBlendMode = kCGBlendModeNormal;
+    curState->alpha = 1.0f;
 
     curPathPosition.x = 0;
     curPathPosition.y = 0;
@@ -426,6 +427,7 @@ void CGContextImpl::CGContextSaveGState() {
     states[curStateNum].curTextMatrix = curState->curTextMatrix;
     states[curStateNum].curTextPosition = curState->curTextPosition;
     states[curStateNum].curBlendMode = curState->curBlendMode;
+    states[curStateNum].alpha = curState->alpha;
     states[curStateNum]._imgClip = NULL;
     states[curStateNum]._imgMask = NULL;
     states[curStateNum].shadowOffset = curState->shadowOffset;
@@ -705,7 +707,7 @@ void CGContextImpl::CGContextSetGrayStrokeColor(float gray, float alpha) {
 }
 
 void CGContextImpl::CGContextSetAlpha(float a) {
-    curState->curFillColor.a = a;
+    curState->alpha = a;
 }
 
 void CGContextImpl::CGContextSetRGBFillColor(float r, float g, float b, float a) {
