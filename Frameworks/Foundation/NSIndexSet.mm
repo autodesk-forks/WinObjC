@@ -413,9 +413,24 @@
 /**
  @Status Stub
 */
-- (NSUInteger)indexLessThanIndex:(NSUInteger)index {
-    UNIMPLEMENTED();
-    return StubReturn();
+- (NSUInteger)indexLessThanIndex:(NSUInteger)anIndex {
+    // If we are zero than make sure we do not wrap around
+	if ( anIndex == 0 ) {
+		return NSNotFound;
+	}
+
+    unsigned rangePos = [(NSMutableIndexSet*)self _positionOfRangeLessThanOrEqualToLocation:anIndex - 1];
+
+    if (rangePos == NSNotFound) {
+        return NSNotFound;
+    }
+
+    NSUInteger locationAtRangePos = [(NSMutableIndexSet*)self _itemAtIndex:rangePos].location;
+    if (locationAtRangePos > anIndex) {
+        return locationAtRangePos;
+    }
+
+    return anIndex - 1;
 }
 
 /**
