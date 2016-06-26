@@ -58,6 +58,7 @@ typedef unsigned short unichar;
     _skipSet = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
     _isCaseSensitive = NO;
     _locale = nil;
+    _cString = [_string UTF8String];
 
     return self;
 }
@@ -76,6 +77,7 @@ typedef unsigned short unichar;
     [_string release];
     [_skipSet release];
     [_locale release];
+    _cString = NULL;
     [super dealloc];
 }
 
@@ -268,7 +270,7 @@ typedef unsigned short unichar;
  @Status Interoperable
 */
 - (BOOL)scanDouble:(double*)valuep {
-    char* pScanStart = (char*)[_string UTF8String];
+    char* pScanStart = (char*)_cString;
     char* pScanEnd = NULL;
 
     pScanStart += _location;
@@ -677,7 +679,7 @@ typedef unsigned short unichar;
  @Notes
 */
 - (BOOL)scanUnsignedLongLong:(unsigned long long*)pValue {
-    const char* pScanStart = (char*)[_string UTF8String];
+    const char* pScanStart = (char*)_cString;
     char* pScanEnd = nullptr;
 
     // Scan the string for a base ten positive integer starting at the internally stored position

@@ -32,6 +32,7 @@ FOUNDATION_EXPORT_CLASS
     NSCharacterSet* _skipSet;
     BOOL _isCaseSensitive;
     NSLocale* _locale;
+    const char *_cString;
 }
 
 + (instancetype)scannerWithString:(NSString*)aString;
