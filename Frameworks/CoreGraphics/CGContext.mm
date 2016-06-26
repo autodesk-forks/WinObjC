@@ -1139,7 +1139,8 @@ void CGContextBeginPage(CGContextRef c, const CGRect* mediaBox) {
  @Status Stub
  @Notes
 */
-void CGContextBeginTransparencyLayerWithRect(CGContextRef c, CGRect rect, CFDictionaryRef auxInfo) {
+void CGContextBeginTransparencyLayerWithRect(CGContextRef ctx, CGRect rect, CFDictionaryRef auxInfo) {
+    ctx->Backing()->CGContextBeginTransparencyLayer((id)auxInfo);
     UNIMPLEMENTED();
 }
 
