@@ -690,6 +690,7 @@ static bool loadTIFF(UIImage* dest, void* bytes, int length) {
 
     CGContextSaveGState(cur);
     CGContextSetBlendMode(cur, mode);
+    CGContextSetAlpha(cur, alpha);
 
     CGRect srcRect;
     CGRect pos;
@@ -1042,10 +1043,7 @@ static void drawLeftAndTopCap(UIImage* self, CGContextRef ctx, CGRect rect) {
 
     CGContextSaveGState(cur);
     CGContextSetBlendMode(cur, mode);
-
-    if (alpha != 1.0) {
-        TraceVerbose(TAG, L"Should draw with alpha");
-    }
+    CGContextSetAlpha(cur, alpha);
 
     if (_scale == 0) {
         TraceWarning(TAG, L"Scale should be non-zero!");
