@@ -1396,14 +1396,14 @@ void CGContextCairo::CGContextDrawLinearGradient(CGGradientRef gradient, CGPoint
         case _ColorRGBA:
             for (unsigned i = 0; i < gradient->_count; i++) {
                 float* curColor = &gradient->_components[i * 4];
-                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[1], curColor[2], curColor[3]);
+                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[1], curColor[2], curColor[3] * curState->alpha);
             }
             break;
 
         case _ColorGrayscale:
             for (unsigned i = 0; i < gradient->_count; i++) {
                 float* curColor = &gradient->_components[i * 2];
-                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[0], curColor[0], curColor[1]);
+                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[0], curColor[0], curColor[1] * curState->alpha);
             }
             break;
 
@@ -1417,7 +1417,13 @@ void CGContextCairo::CGContextDrawLinearGradient(CGGradientRef gradient, CGPoint
         cairo_mask_surface(_drawContext, curState->_imgMask->Backing()->LockCairoSurface(), 0.0, 0.0);
         curState->_imgMask->Backing()->ReleaseCairoSurface();
     } else {
-        cairo_paint_with_alpha(_drawContext, curState->alpha);
+        double x1, y1, x2, y2;
+        cairo_path_extents(_drawContext, &x1, &y1, &x2, &y2);
+
+        if(x1 == 0.0 && y1 == 0.0 && x2 == 0.0 && y2 == 0.0)  // if path is empty paint the clip area, otherwise fill
+            cairo_paint(_drawContext);
+        else
+            cairo_fill(_drawContext);
     }
     cairo_pattern_destroy(pattern);
     UNLOCK_CAIRO();
@@ -1437,14 +1443,14 @@ void CGContextCairo::CGContextDrawRadialGradient(
         case _ColorRGBA:
             for (unsigned i = 0; i < gradient->_count; i++) {
                 float* curColor = &gradient->_components[i * 4];
-                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[1], curColor[2], curColor[3]);
+                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[1], curColor[2], curColor[3] * curState->alpha);
             }
             break;
 
         case _ColorGrayscale:
             for (unsigned i = 0; i < gradient->_count; i++) {
                 float* curColor = &gradient->_components[i * 2];
-                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[0], curColor[0], curColor[1]);
+                cairo_pattern_add_color_stop_rgba(pattern, gradient->_locations[i], curColor[0], curColor[0], curColor[0], curColor[1] * curState->alpha);
             }
             break;
 
@@ -1458,7 +1464,13 @@ void CGContextCairo::CGContextDrawRadialGradient(
         cairo_mask_surface(_drawContext, curState->_imgMask->Backing()->LockCairoSurface(), 0.0, 0.0);
         curState->_imgMask->Backing()->ReleaseCairoSurface();
     } else {
-        cairo_paint_with_alpha(_drawContext, curState->alpha);
+        double x1, y1, x2, y2;
+        cairo_path_extents(_drawContext, &x1, &y1, &x2, &y2);
+
+        if(x1 == 0.0 && y1 == 0.0 && x2 == 0.0 && y2 == 0.0) // if path is empty paint the clip area, otherwise fill
+            cairo_paint(_drawContext);
+        else
+            cairo_fill(_drawContext);
     }
     cairo_pattern_destroy(pattern);
     UNLOCK_CAIRO();
