@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClangCompile Include="..\..\..\Frameworks\SafariServices\SFSafariViewController.mm" />
+    <ClangCompile Include="..\..\..\Frameworks\SafariServices\SFSafariOAuthViewController.mm" />
+    <ClangCompile Include="..\..\..\Frameworks\SafariServices\SFSafariWebViewController.mm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{926fbb0b-874f-4f88-84eb-4352d41cf810}</ProjectGuid>
@@ -42,7 +44,7 @@
     </ClCompile>
     <ClangCompile>
       <AdditionalOptions>"-DSAFARISERVICES_IMPEXP= " %(AdditionalOptions)</AdditionalOptions>
-      <IncludePaths>$(StarboardBasePath)\Frameworks\include</IncludePaths>
+      <IncludePaths>$(StarboardBasePath)\Frameworks\include;$(StarboardBasePath)\include\xplat</IncludePaths>
       <ObjectiveCARC>true</ObjectiveCARC>
     </ClangCompile>
   </ItemDefinitionGroup>
@@ -53,7 +55,7 @@
     </ClCompile>
     <ClangCompile>
       <AdditionalOptions>"-DSAFARISERVICES_IMPEXP= " %(AdditionalOptions)</AdditionalOptions>
-      <IncludePaths>$(StarboardBasePath)\Frameworks\include</IncludePaths>
+      <IncludePaths>$(StarboardBasePath)\Frameworks\include;$(StarboardBasePath)\include\xplat</IncludePaths>
       <ObjectiveCARC>true</ObjectiveCARC>
     </ClangCompile>
   </ItemDefinitionGroup>
@@ -64,7 +66,7 @@
     </ClCompile>
     <ClangCompile>
       <AdditionalOptions>"-DSAFARISERVICES_IMPEXP= " %(AdditionalOptions)</AdditionalOptions>
-      <IncludePaths>$(StarboardBasePath)\Frameworks\include</IncludePaths>
+      <IncludePaths>$(StarboardBasePath)\Frameworks\include;$(StarboardBasePath)\include\xplat</IncludePaths>
       <ObjectiveCARC>true</ObjectiveCARC>
     </ClangCompile>
   </ItemDefinitionGroup>
@@ -75,7 +77,7 @@
     </ClCompile>
     <ClangCompile>
       <AdditionalOptions>"-DSAFARISERVICES_IMPEXP= " %(AdditionalOptions)</AdditionalOptions>
-      <IncludePaths>$(StarboardBasePath)\Frameworks\include</IncludePaths>
+      <IncludePaths>$(StarboardBasePath)\Frameworks\include;$(StarboardBasePath)\include\xplat</IncludePaths>
       <ObjectiveCARC>true</ObjectiveCARC>
     </ClangCompile>
   </ItemDefinitionGroup>

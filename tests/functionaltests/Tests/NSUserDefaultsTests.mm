@@ -16,6 +16,8 @@
 
 #include <TestFramework.h>
 #import <Foundation/Foundation.h>
+#import <Corefoundation/CFBase.h>
+#import <Corefoundation/CFPreferences.h>
 
 TEST(NSUserDefaults, Basic) {
     NSUserDefaults* userDefault = [NSUserDefaults standardUserDefaults];
@@ -55,4 +57,23 @@ TEST(NSUserDefaults, KVCArray) {
     EXPECT_TRUE([[[NSUserDefaults standardUserDefaults] objectForKey:@"nonexistentPreference"] containsObject:@"Another"]);
 
     [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+TEST(NSUserDefaults, Remove) {
+	[[NSUserDefaults standardUserDefaults] setObject:@"Cheddar" forKey:@"FavoriteCheese"];
+	NSString* actualCheese = [[NSUserDefaults standardUserDefaults] stringForKey:@"FavoriteCheese"];
+	EXPECT_OBJCEQ(@"Cheddar", actualCheese);
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"FavoriteCheese"];
+	actualCheese = [[NSUserDefaults standardUserDefaults] stringForKey:@"FavoriteCheese"];
+	EXPECT_OBJCEQ(nil, actualCheese);
+}
+
+TEST(NSUserDefaults, Perf) {
+    NSTimeInterval start = [NSDate timeIntervalSinceReferenceDate];
+    for (int i = 0; i < 500; i++) {
+        [[NSUserDefaults standardUserDefaults] setValue:@(i) forKey:[NSString stringWithFormat:@"Test%d", i]];
+    }
+
+    NSTimeInterval end = [NSDate timeIntervalSinceReferenceDate];
+    LOG_INFO("NSUserDefaults took %lf s", end - start);
 }

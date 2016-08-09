@@ -2,7 +2,11 @@ LIBRARY UIKit
     EXPORTS
         ; Application entry points (StarboardXAML)
         UIApplicationMain
-        UIApplicationMainTest
+        UIApplicationInitialize
+        UIApplicationActivationTest
+        UIApplicationLaunched
+        UIApplicationActivated
+        ;UIApplicationBackgroundActivated - Code disabled with ENABLE_BACKGROUND_TASK flag for now
 
         ; NSAttributedString
         NSFontAttributeName DATA
@@ -288,6 +292,8 @@ LIBRARY UIKit
         UIApplicationLaunchOptionsSourceApplicationKey DATA
         UIApplicationLaunchOptionsRemoteNotificationKey DATA
         UIApplicationLaunchOptionsLocalNotificationKey DATA
+        UIApplicationLaunchOptionsVoiceCommandKey DATA
+        UIApplicationLaunchOptionsProtocolKey DATA
         UIApplicationLaunchOptionsAnnotationKey DATA
         UIApplicationLaunchOptionsLocationKey DATA
         UIApplicationLaunchOptionsNewsstandDownloadsKey DATA
@@ -1158,8 +1164,6 @@ LIBRARY UIKit
 
         ; Extra stuff for WinObjC:
         UIShutdown
-        UIQueueTouchInput
-        UIQueueKeyInput
         UIRequestTransactionProcessing
         UIOrientationFromString
         UIApplicationDidChangeDisplayModeNofication

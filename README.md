@@ -1,6 +1,8 @@
-**Note on installing the bridge:** We've switched to using [Git LFS](https://git-lfs.github.com) to handle the large binaries included in the bridge. This does not affect using the [prebuilt releases found on our releases page](https://github.com/Microsoft/WinObjC/releases), but if you build the bridge from source, please see the instructions found on our [Building From Source wiki page](https://github.com/Microsoft/WinObjC/wiki/Building-From-Source).
+###Download the latest pre-built Windows Bridge for iOS SDK [here](https://aka.ms/winobjc_latest).
 
-**Please do not use the "Download ZIP" button above, since you will not be able to build the bridge using the resulting .zip file.** For more information on why this is the case, see ["I'm getting errors after downloading the bridge through the "Download ZIP" button on Github. What should I do?"](https://github.com/Microsoft/WinObjC/wiki/FAQ#im-getting-errors-after-downloading-the-bridge-through-the-download-zip-button-on-github-what-should-i-do) in our FAQ.
+**Note on installing the bridge:** We use [Git LFS](https://git-lfs.github.com) to handle the large binaries included in the bridge. This does not affect using the [prebuilt releases found on our releases page](https://github.com/Microsoft/WinObjC/releases). If you build the bridge from source, please see the instructions found on our [Building From Source](https://github.com/Microsoft/WinObjC/wiki/Building-From-Source) wiki page.
+
+**Do not use the Download ZIP via the "Download or Clone" option above.** You will not be able to build the bridge using the resulting .zip file. See ["I'm getting errors after downloading the bridge through the "Download ZIP" button on Github. What should I do?"](https://github.com/Microsoft/WinObjC/wiki/FAQ#im-getting-errors-after-downloading-the-bridge-through-the-download-zip-button-on-github-what-should-i-do) for more information.
 
 # Welcome to the Windows Bridge for iOS project preview
 The Windows Bridge for iOS (also referred to as WinObjC) is a Microsoft open-source project that provides an Objective-C development environment for Visual Studio and support for iOS APIs. The bridge allows you to create Universal Windows Platform (UWP) apps that will run on many Windows devices using iOS APIs and Objective-C code alongside Windows 10 features like Cortana and Live Tiles.
@@ -29,7 +31,7 @@ To get started using the bridge to bring your iOS app to Windows, you'll need:
     1. Programming Languages -> Visual C++
     2. Universal Windows App Development Tools (all)
 
-- (Optional) Windows 10 1511 Standalone SDK (Updated on November 30th, 2015) from [here](https://dev.windows.com/en-US/downloads/windows-10-sdk).  Note: this step is new and is not required if you already installed Visual Studio 2015 Update 1.
+- (Optional) Windows 10 1511 Standalone SDK (Updated on November 30th, 2015) from [here](https://dev.windows.com/en-US/downloads/windows-10-sdk).  Note: this step is new and is not required if you already installed Visual Studio 2015 Update 3.
 
 The best way to get started with the bridge is to run one of the samples. We recommend starting with the **WOCCatalog** sample app, which demonstrates an assortment of iOS and XAML UI controls.
 
@@ -49,6 +51,8 @@ For guidance on importing your own Xcode project and other tips, see the [wiki](
 
 ## Contributions
 See our [contribution guidance in the wiki](https://github.com/Microsoft/WinObjC/wiki/How-to-Contribute) for details on how to contribute to the project.
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 
 ## Privacy

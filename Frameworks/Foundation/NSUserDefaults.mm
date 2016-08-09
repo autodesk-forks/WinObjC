@@ -14,22 +14,22 @@ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEM
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import "Starboard.h"
-#import "StubReturn.h"
-#import "Foundation/NSMutableArray.h"
-#import "Foundation/NSString.h"
-#import "Foundation/NSMutableDictionary.h"
-#import "Foundation/NSNumber.h"
-#import "Foundation/NSProcessInfo.h"
-#import "Foundation/NSNotificationCenter.h"
-#import "Foundation/NSData.h"
-#import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSThread.h"
-#import "NSPersistentDomain.h"
+#import <Starboard.h>
+#import <StubReturn.h>
+#import <Foundation/NSMutableArray.h>
+#import <Foundation/NSString.h>
+#import <Foundation/NSMutableDictionary.h>
+#import <Foundation/NSNumber.h>
+#import <Foundation/NSNotificationCenter.h>
+#import <Foundation/NSData.h>
+#import <Foundation/NSUserDefaults.h>
+#import <Foundation/NSThread.h>
 #import "NSStringInternal.h"
-#import "LoggingNative.h"
-
-static const wchar_t* TAG = L"NSUserDefaults";
+#import "NSUserDefaultsInternal.h"
+#import <LoggingNative.h>
+#import <ForFoundationOnly.h>
+#import <CoreFoundation/CFPreferences.h>
+#import <mutex>
 
 FOUNDATION_EXPORT NSString* const NSGlobalDomain = @"NSGlobalDomain";
 FOUNDATION_EXPORT NSString* const NSArgumentDomain = @"NSArgumentDomain";
@@ -41,114 +41,140 @@ FOUNDATION_EXPORT NSString* const NSTimeFormatString = @"NSTimeFormatString";
 FOUNDATION_EXPORT NSString* const NSDateFormatString = @"NSDateFormatString";
 FOUNDATION_EXPORT NSString* const NSAMPMDesignation = @"NSAMPMDesignation";
 FOUNDATION_EXPORT NSString* const NSTimeDateFormatString = @"NSTimeDateFormatString";
-
 FOUNDATION_EXPORT NSString* const NSShortWeekDayNameArray = @"NSShortWeekDayNameArray";
 FOUNDATION_EXPORT NSString* const NSShortMonthNameArray = @"NSShortMonthNameArray";
 
 FOUNDATION_EXPORT NSString* const NSUserDefaultsDidChangeNotification = @"NSUserDefaultsDidChangeNotification";
 
 @implementation NSUserDefaults {
-    NSMutableDictionary* _domains;
-    NSMutableArray* _searchList;
-    NSDictionary* _dictionaryRep;
-
-    BOOL _willSave;
+    StrongId<NSMutableDictionary> _cacheDict;
+    std::mutex _cacheLock;
+    BOOL _cacheIsDirty;
+    StrongId<NSMutableDictionary> _registrationDict;
+    StrongId<NSOperationQueue> _synchronizeQueue;
 }
+
+static StrongId<NSUserDefaults> _standard = nil;
 
 /**
  @Status Interoperable
 */
 - (instancetype)init {
-    _domains = [NSMutableDictionary new];
-    _searchList = [[NSMutableArray allocWithZone:nil] initWithCapacity:64];
+    return [self initWithSuiteName:nil];
+}
 
-    [_searchList addObject:NSArgumentDomain];
-    [_searchList addObject:[[NSProcessInfo processInfo] processName]];
-    [_searchList addObject:NSGlobalDomain];
-    [_searchList addObject:NSRegistrationDomain];
-    [_searchList addObject:@"Foundation"];
+/**
+ @Status Caveat
+ @Notes supports nil only for suitename
+*/
+- (instancetype)initWithSuiteName:(NSString*)suitename {
+    if (nil != suitename) {
+        UNIMPLEMENTED();
+        return StubReturn();
+    }
 
-    [[NSProcessInfo processInfo] environment];
+    if(self = [super init]) {
 
-    //[self registerFoundationDefaults];
-    //[self registerArgumentDefaults];
-    //[self registerProcessNameDefaults];
+        _cacheDict = [NSMutableDictionary dictionary];
+        _registrationDict = [NSMutableDictionary dictionary];
 
-    [_domains setObject:[NSMutableDictionary dictionary] forKey:NSRegistrationDomain];
+        _synchronizeQueue.attach([NSOperationQueue new]);
+        [_synchronizeQueue setMaxConcurrentOperationCount:1];
 
-    id domain = [NSPersistentDomain persistantDomainWithName:@"UserDefaults"];
-
-    [_domains setObject:domain forKey:[[NSProcessInfo processInfo] processName]];
-
-    [self setObject:[NSArray arrayWithObject:@"en"] forKey:@"AppleLanguages"];
-    [self setObject:@"en_US" forKey:@"AppleLocale"];
+        [self setObject:[NSArray arrayWithObject:@"en"] forKey:@"AppleLanguages"];
+        [self setObject:@"en_US" forKey:@"AppleLocale"];
+    }
 
     return self;
+}
+
+- (void)dealloc {
+    [_synchronizeQueue waitUntilAllOperationsAreFinished];
+    [super dealloc];
 }
 
 /**
  @Status Interoperable
 */
 + (NSUserDefaults*)standardUserDefaults {
-    static NSUserDefaults* standard;
-
-    if (standard == nil) {
-        standard = [self new];
+    @synchronized(self) {
+        if (nil == _standard) {
+            _standard.attach([self new]);
+        }
+        return _standard;
     }
-
-    return standard;
 }
 
-- (NSMutableDictionary*)_buildDictionaryRep {
-    NSMutableDictionary* result = [NSMutableDictionary dictionary];
-    NSInteger i, count = [_searchList count];
-
-    for (i = 0; i < count; i++) {
-        NSPersistentDomain* domain = [_domains objectForKey:[_searchList objectAtIndex:i]];
-        NSEnumerator* state = [domain keyEnumerator];
-        id key;
-
-        while ((key = [state nextObject]) != nil) {
-            id value = [domain objectForKey:key];
-
-            if (value != nil)
-                [result setObject:value forKey:key];
-        }
++ (NSUserDefaults*)_standardUserDefaultsNoInitialize {
+    @synchronized(self) {
+        return _standard;
     }
-
-    return result;
 }
 
 /**
  @Status Interoperable
 */
 - (id)dictionaryRepresentation {
-    if (_dictionaryRep == nil)
-        _dictionaryRep = [[self _buildDictionaryRep] retain];
-
-    return _dictionaryRep;
+    [_synchronizeQueue waitUntilAllOperationsAreFinished];
+    _CFApplicationPreferences* preferences = _CFStandardApplicationPreferences(kCFPreferencesCurrentApplication);
+    CFDictionaryRef dict = _CFApplicationPreferencesCopyRepresentation(preferences);
+    return [(NSDictionary*)dict autorelease];
 }
 
 /**
  @Status Interoperable
 */
-- (void)registerDefaults:(id)values {
-    [[_domains objectForKey:NSRegistrationDomain] addEntriesFromDictionary:values];
+- (void)registerDefaults:(NSDictionary*)dictionary {
+    [_registrationDict addEntriesFromDictionary:dictionary];
 }
 
 /**
- @Status Interoperable
+ @Status Stub
 */
 - (NSMutableDictionary*)persistentDomainForName:(id)name {
-    NSMutableDictionary* result = [NSMutableDictionary dictionary];
-    NSPersistentDomain* domain = [NSPersistentDomain persistantDomainWithName:name];
-    NSArray* allKeys = [domain allKeys];
-    NSInteger i, count = [allKeys count];
+    UNIMPLEMENTED();
+    return StubReturn();
+}
 
-    for (i = 0; i < count; i++) {
-        NSString* key = [allKeys objectAtIndex:i];
+/**
+ @Status Stub
+*/
+- (void)removePersistentDomainForName:(id)name {
+    UNIMPLEMENTED();
+}
 
-        [result setObject:[domain objectForKey:key] forKey:key];
+/**
+ @Status Stub
+*/
+- (void)setPersistentDomain:(id)domain forName:(NSString*)name {
+    UNIMPLEMENTED();
+}
+
+/**
+ @Status Caveat
+ @Notes Writes to file only - external changes to the preferences file are overwritten.
+*/
+- (BOOL)synchronize {
+    BOOL isDirty;
+
+    // lock scope
+    {
+        std::lock_guard<std::mutex> lock(_cacheLock);
+        isDirty = _cacheIsDirty;
+
+        if (isDirty) {
+            [_cacheDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL* stop) {
+                CFPreferencesSetAppValue(static_cast<CFStringRef>(key), obj, kCFPreferencesCurrentApplication);
+            }];
+
+            [_cacheDict removeAllObjects];
+            _cacheIsDirty = NO;
+        }
+    }
+
+    BOOL result = NO;
+    if (isDirty) {
+        result = CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
     }
 
     return result;
@@ -157,52 +183,26 @@ FOUNDATION_EXPORT NSString* const NSUserDefaultsDidChangeNotification = @"NSUser
 /**
  @Status Interoperable
 */
-- (void)removePersistentDomainForName:(id)name {
-}
-
-/**
- @Status Interoperable
-*/
-- (void)setPersistentDomain:(id)domain forName:(NSString*)name {
-    TraceVerbose(TAG, L"Setting domain for %hs", [name UTF8String]);
-    [_domains setObject:domain forKey:name];
-}
-
-/**
- @Status Interoperable
-*/
-- (BOOL)synchronize {
-    /*
-    if ( ![NSThread isMainThread] ) {
-    return FALSE;
-    }
-    */
-
-    _willSave = FALSE;
-    [[self _persistentDomain] synchronize];
-    return TRUE;
-}
-
-- (NSPersistentDomain*)_persistentDomain {
-    return [_domains objectForKey:[[NSProcessInfo processInfo] processName]];
-}
-
-/**
- @Status Interoperable
-*/
 - (id)objectForKey:(NSString*)defaultName {
-    NSInteger i, count = [_searchList count];
+    id obj;
 
-    for (i = 0; i < count; i++) {
-        id domain = [_domains objectForKey:[_searchList objectAtIndex:i]];
-        id object = [domain objectForKey:defaultName];
-
-        if (object != nil) {
-            return object;
-        }
+    // Check cache under lock
+    {
+        std::lock_guard<std::mutex> lock(_cacheLock);
+        obj = [_cacheDict objectForKey:defaultName];
     }
 
-    return nil;
+    if (!obj) {
+        // Check stored app preferences
+        obj = [(id)CFPreferencesCopyAppValue(static_cast<CFStringRef>(defaultName), kCFPreferencesCurrentApplication) autorelease];
+    }
+
+    if (!obj) {
+        // Fallback to registered defaults
+        obj = [_registrationDict objectForKey:defaultName];
+    }
+
+    return obj;
 }
 
 /**
@@ -247,11 +247,13 @@ FOUNDATION_EXPORT NSString* const NSUserDefaultsDidChangeNotification = @"NSUser
 - (BOOL)boolForKey:(NSString*)defaultName {
     id object = [self objectForKey:defaultName];
 
-    if ([object isKindOfClass:[NSNumber class]])
+    if ([object isKindOfClass:[NSNumber class]]) {
         return [(NSNumber*)object boolValue];
+    }
 
-    if ([object isKindOfClass:[NSString class]])
+    if ([object isKindOfClass:[NSString class]]) {
         return [(NSString*)object boolValue];
+    }
 
     return NO;
 }
@@ -300,94 +302,47 @@ FOUNDATION_EXPORT NSString* const NSUserDefaultsDidChangeNotification = @"NSUser
                                                      ([number isKindOfClass:[NSNumber class]] ? [number doubleValue] : 0.0);
 }
 
-static id deepCopyValue(id obj) {
-    if ([obj isKindOfClass:[NSArray class]]) {
-        int count = [obj count];
-        int i = 0;
-        id* objs = (id*)IwMalloc(count * sizeof(id));
-        for (id curObj in obj) {
-            objs[i] = deepCopyValue(curObj);
-            i++;
-        }
-
-        id ret;
-
-        if ([obj isKindOfClass:[NSMutableArray class]]) {
-            ret = [[NSMutableArray alloc] initWithObjects:objs count:count];
-        } else {
-            ret = [[NSArray alloc] initWithObjects:objs count:count];
-        }
-
-        for (i = 0; i < count; i++) {
-            [objs[i] release];
-        }
-
-        IwFree(objs);
-
-        return ret;
-    } else if ([obj isKindOfClass:[NSDictionary class]]) {
-        int count = [obj count];
-        int i = 0;
-        id* objs = (id*)IwMalloc(count * sizeof(id));
-        id* keys = (id*)IwMalloc(count * sizeof(id));
-
-        for (id curObj in obj) {
-            keys[i] = curObj;
-            objs[i] = deepCopyValue([obj objectForKey:curObj]);
-            i++;
-        }
-
-        id ret;
-        if ([obj isKindOfClass:[NSMutableDictionary class]]) {
-            ret = [[NSMutableDictionary alloc] initWithObjects:objs forKeys:keys count:count];
-        } else {
-            ret = [[NSDictionary alloc] initWithObjects:objs forKeys:keys count:count];
-        }
-
-        for (i = 0; i < count; i++) {
-            [objs[i] release];
-        }
-
-        IwFree(objs);
-        IwFree(keys);
-
-        return ret;
+- (void) _scheduleSynchronize {
+    // Up to 2 synchronize operations are allowed in the queue, so that if an existing operation has not been removed from the queue,
+    // we still get a synchronize after the CFPreferencesSetAppValue call. Any additional operations would result in an extra synchronize.
+    if ([_synchronizeQueue operationCount] < 2) {
+        [_synchronizeQueue addOperationWithBlock:^void(void) {
+            [self synchronize];
+        }];
     }
+}
 
-    return [obj copy];
+- (NSOperationQueue*) _synchronizeQueue {
+    return _synchronizeQueue;
+}
+
+- (void) _suspendSynchronize {
+    [_synchronizeQueue addOperations:@[[NSBlockOperation blockOperationWithBlock:^{[_synchronizeQueue setSuspended:YES];}]] waitUntilFinished:YES];
+}
+
+- (void) _resumeSynchronize {
+    [_synchronizeQueue setSuspended:NO];
 }
 
 /**
  @Status Interoperable
+ @Notes Threadsafe with other NSUserDefaults operations, not threadsafe with CFPreferences operations
 */
 - (void)setObject:(id)value forKey:(NSString*)key {
     if (value == nil) {
         return;
     }
 
-    value = deepCopyValue(value);
+    CFTypeRef valueCopy = CFAutorelease(CFPropertyListCreateDeepCopy(kCFAllocatorDefault, value, kCFPropertyListMutableContainersAndLeaves));
 
-    [(NSMutableDictionary*)[self _persistentDomain] setObject:value forKey:key];
-    [value release];
-    [_dictionaryRep autorelease];
-    _dictionaryRep = nil;
+    {
+        std::lock_guard<std::mutex> lock(_cacheLock);
+        [_cacheDict setObject:(id)valueCopy forKey:key];
+        _cacheIsDirty = YES;
+    }
 
     [[NSNotificationCenter defaultCenter] postNotificationName:NSUserDefaultsDidChangeNotification object:self];
-
-    if (!_willSave) {
-        _willSave = TRUE;
-        if (![NSThread isMainThread]) {
-            TraceWarning(TAG, L"Warning: NSUserDefaults accessed from non-main thread");
-            [self performSelectorOnMainThread:@selector(_scheduleSync) withObject:nil waitUntilDone:FALSE];
-        } else {
-            [self performSelector:@selector(synchronize) withObject:nil afterDelay:1.0];
-        }
-    }
-}
-
-- (id)_scheduleSync {
-    [self performSelector:@selector(synchronize) withObject:nil afterDelay:1.0];
-    return self;
+    [self _scheduleSynchronize];
 }
 
 /**
@@ -449,7 +404,7 @@ static id deepCopyValue(id obj) {
  @Status Interoperable
 */
 - (void)setBool:(int)value forKey:(NSString*)defaultName {
-    [self setObject:value ? @"YES" : @"NO" forKey:defaultName];
+    [self setObject:(value ? @YES : @NO) forKey:defaultName];
 }
 
 /**
@@ -481,9 +436,15 @@ static id deepCopyValue(id obj) {
  @Status Interoperable
 */
 - (void)removeObjectForKey:(NSString*)key {
-    [(NSMutableDictionary*)[self _persistentDomain] removeObjectForKey:key];
+    {
+        std::lock_guard<std::mutex> lock(_cacheLock);
+        [_cacheDict removeObjectForKey:key];
+        CFPreferencesSetAppValue((CFStringRef)key, NULL, kCFPreferencesCurrentApplication);
+        _cacheIsDirty = YES; // Ensures that changes are written to storage
+    }
 
     [[NSNotificationCenter defaultCenter] postNotificationName:NSUserDefaultsDidChangeNotification object:self];
+    [self _scheduleSynchronize];
 }
 
 /**
@@ -493,13 +454,16 @@ static id deepCopyValue(id obj) {
     id array = [self objectForKey:key];
     NSInteger count;
 
-    if (![array isKindOfClass:[NSArray class]])
+    if (![array isKindOfClass:[NSArray class]]) {
         return nil;
+    }
 
     count = [array count];
-    while (--count >= 0)
-        if (![[array objectAtIndex:count] isKindOfClass:[NSString class]])
+    while (--count >= 0) {
+        if (![[array objectAtIndex:count] isKindOfClass:[NSString class]]) {
             return nil;
+        }
+    }
 
     return array;
 }
@@ -530,15 +494,6 @@ static id deepCopyValue(id obj) {
  @Notes
 */
 - (id)initWithUser:(NSString*)username {
-    UNIMPLEMENTED();
-    return StubReturn();
-}
-
-/**
- @Status Stub
- @Notes
-*/
-- (instancetype)initWithSuiteName:(NSString*)suitename {
     UNIMPLEMENTED();
     return StubReturn();
 }

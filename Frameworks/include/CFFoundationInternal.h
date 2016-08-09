@@ -47,6 +47,7 @@ CF_EXPORT Boolean _CFDictionaryIsMutable(CFDictionaryRef dictionary);
 CF_EXPORT Boolean _CFArrayIsMutable(CFArrayRef array);
 CF_PRIVATE Boolean __CFCharacterSetIsMutable(CFCharacterSetRef cset);
 CF_EXPORT Boolean _CFDataIsMutable(CFDataRef data);
+CF_EXPORT Boolean _CFDataOwnsBuffer(CFDataRef data);
 CF_EXPORT Boolean _CFAttributedStringIsMutable(CFAttributedStringRef attrStr);
 CF_EXPORT Boolean _CFSetIsMutable(CFSetRef hc);
 CF_EXTERN_C_END
@@ -63,3 +64,6 @@ CF_EXTERN_C_END
 #elif defined(UNIX_PATH_SEMANTICS)
 #define IS_SLASH(C) ((C) == '/')
 #endif
+
+// Expose current directory functionality from CFURL
+CF_EXPORT CFURLRef _CFURLCreateCurrentDirectoryURL(CFAllocatorRef allocator) CF_RETURNS_RETAINED;

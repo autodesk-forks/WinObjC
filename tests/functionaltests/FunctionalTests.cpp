@@ -17,14 +17,18 @@
 #include "pch.h"
 #include <gtest-api.h>
 #include "Framework/Framework.h"
+#include "FunctionalTestHelpers.h"
+#include "Tests/AssetsLibraryTests/AssetsLibraryTestHelpers.h"
 #include <WexTestClass.h>
 #include <ErrorHandling.h>
 
-using namespace WEX::Logging;
-using namespace WEX::TestExecution;
+// This is a method that UIKit exposes for the test frameworks to use.
+extern "C" void UIApplicationInitialize(const wchar_t*, const wchar_t*);
 
-// This is an internal method that UIKit exposes solely for the test frameworks' to use.
-extern "C" void UIApplicationMainTest();
+static void UIApplicationDefaultInitialize() {
+    // Pass null to indicate default app and app delegate classes
+    UIApplicationInitialize(nullptr, nullptr);
+}
 
 //
 // How is functional test organized?
@@ -92,7 +96,7 @@ public:
     //     2. Use the same mechanism as in TEST_METHOD below to export a method from the WinObjC test file and call it here.
     //     3. If you do not need this functionality feel free to remove this for your test class.
     TEST_CLASS_SETUP(SampleTestClassSetup) {
-        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationMainTest));
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
     }
 
     // SampleTest test class cleanup.
@@ -156,6 +160,7 @@ public:
 extern void NSURLConnectionRequestWithURL();
 extern void NSURLConnectionRequestWithURL_Failure();
 
+extern void NSURLSessionTaskIdentifiers();
 extern void NSURLSessionDataTaskWithURL();
 extern void NSURLSessionDataTaskWithURL_Failure();
 extern void NSURLSessionDataTaskWithURL_WithCompletionHandler();
@@ -174,7 +179,12 @@ public:
     END_TEST_CLASS()
 
     TEST_CLASS_SETUP(NSURLClassSetup) {
-        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationMainTest));
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
+    }
+
+    TEST_METHOD_CLEANUP(NSURLCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
     }
 
     //
@@ -192,6 +202,10 @@ public:
     //
     // NSURLSession
     //
+
+    TEST_METHOD(NSURLSession_TaskIdentifiers) {
+        NSURLSessionTaskIdentifiers();
+    }
 
     TEST_METHOD(NSURLSession_DataTaskWithURL) {
         NSURLSessionDataTaskWithURL();
@@ -231,6 +245,8 @@ public:
 //
 extern void NSUserDefaultsBasic();
 extern void NSUserDefaultsKVCArray();
+extern void NSUserDefaultsRemove();
+extern void NSUserDefaultsPerf();
 
 class NSUserDefaults {
 public:
@@ -240,7 +256,12 @@ public:
     END_TEST_CLASS()
 
     TEST_CLASS_SETUP(NSURLClassSetup) {
-        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationMainTest));
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
+    }
+
+    TEST_METHOD_CLEANUP(NSUserDefaultsCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
     }
 
     TEST_METHOD(NSUserDefaults_Basic) {
@@ -250,4 +271,197 @@ public:
     TEST_METHOD(NSUserDefaults_KVCArray) {
         NSUserDefaultsKVCArray();
     }
+
+    TEST_METHOD(NSUserDefaults_Remove) {
+        NSUserDefaultsRemove();
+    }
+
+    TEST_METHOD(NSUserDefaults_Perf) {
+        NSUserDefaultsPerf();
+    }
+
 }; /* class NSUserDefaults */
+
+//
+// NSBundle Tests
+//
+extern void NSBundleMSAppxURL();
+
+class NSBundle {
+public:
+    BEGIN_TEST_CLASS(NSBundle)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(NSURLClassSetup) {
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
+    }
+
+    TEST_METHOD_CLEANUP(NSBundleCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(NSBundle_MSAppxURL) {
+        NSBundleMSAppxURL();
+    }
+}; /* class NSBundle */
+
+//
+// AssetsLibrary Tests
+//
+extern void AssetsLibraryGetVideoAsset();
+
+class AssetsLibrary {
+public:
+    BEGIN_TEST_CLASS(AssetsLibrary)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    TEST_CLASS_PROPERTY(L"UAP:AppXManifest", L"AssetsLibrary.AppxManifest.xml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(AssetsLibraryClassSetup) {
+        bool success = AssetsLibraryTestVideoSetup("AssetsLibraryTestVideo.mp4");
+        return (success & SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize)));
+    }
+
+    TEST_CLASS_CLEANUP(AssetsLibraryClassCleanup) {
+        return AssetsLibraryTestVideoCleanup("AssetsLibraryTestVideo.mp4");
+    }
+
+    TEST_METHOD_CLEANUP(AssetsLibraryCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(AssetsLibrary_GetVideoAsset) {
+        AssetsLibraryGetVideoAsset();
+    }
+}; /* class AssetsLibrary */
+
+//
+// Cortana Activation Tests
+//
+
+extern void CortanaTestVoiceCommandForegroundActivation();
+extern void CortanaTestVoiceCommandForegroundActivationDelegateMethodsCalled();
+
+class CortanaVoiceCommandForeground {
+public:
+    BEGIN_TEST_CLASS(CortanaVoiceCommandForeground)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(CortanaVoiceCommandForegroundTestClassSetup) {
+        // The class setup allows us to activate the app in our test method, but can only be done once per class
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&CortanaTestVoiceCommandForegroundActivation));
+    }
+
+    TEST_METHOD_CLEANUP(CortanaVoiceCommandForegroundCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(Cortana_VoiceCommandForegroundActivationDelegateMethodsCalled) {
+        CortanaTestVoiceCommandForegroundActivationDelegateMethodsCalled();
+    }
+}; /* class CortanaVoiceCommandForeground*/
+
+extern void CortanaTestProtocolForegroundActivation();
+extern void CortanaTestProtocolForegroundActivationDelegateMethodsCalled();
+
+class CortanaProtocolForeground {
+public:
+    BEGIN_TEST_CLASS(CortanaProtocolForeground)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(CortanaProtocolForegroundTestClassSetup) {
+        // The class setup allows us to activate the app in our test method, but can only be done once per class
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&CortanaTestProtocolForegroundActivation));
+    }
+
+    TEST_METHOD_CLEANUP(CortanaProtocolForegroundCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(Cortana_ProtocolForegroundActivationDelegateMethodsCalled) {
+        CortanaTestProtocolForegroundActivationDelegateMethodsCalled();
+    }
+}; /* class CortanaProtocolForeground*/
+
+// UIViewTests
+//
+extern void UIViewTestsCreate();
+
+class UIViewTests {
+public:
+    BEGIN_TEST_CLASS(UIViewTests)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(UIViewTestsSetup) {
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
+    }
+
+    TEST_METHOD_CLEANUP(UIViewCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(UIViewTests_Create) {
+        UIViewTestsCreate();
+    }
+}; /* class UIViewTests */
+
+// Projection Tests
+//
+extern void ProjectionWUCCoreDispatcherSanity();
+
+class ProjectionTest {
+public:
+    BEGIN_TEST_CLASS(ProjectionTest)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(ProjectionTestClassSetup) {
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
+    }
+
+    TEST_METHOD_CLEANUP(ProjectionTestCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(ProjectionTest_WUCCoreDispatcherSanity) {
+        ProjectionWUCCoreDispatcherSanity();
+    }
+
+}; /* class ProjectionTest */
+
+//
+// UIApplicationTests
+//
+extern void UIApplicationTestsOpenURL();
+
+class UIApplicationTests {
+public:
+    BEGIN_TEST_CLASS(UIApplicationTests)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(UIApplicationTestsSetup) {
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&UIApplicationDefaultInitialize));
+    }
+
+    TEST_METHOD(UIApplicationTests_OpenURL) {
+        UIApplicationTestsOpenURL();
+    }
+}; /* class UIApplicationTests */

@@ -28,8 +28,7 @@
 #import <LoggingNative.h>
 
 #import <array>
-#import <direct.h>
-#import <io.h>
+#import <windows.h>
 
 NSString* const kURLTestParsingTestsKey = @"ParsingTests";
 
@@ -113,14 +112,14 @@ static boolean setup_test_paths() {
                       gDirectoryExistsPath = gBaseTemporaryDirectoryPath + gDirectoryExistsName;
                       gDirectoryDoesNotExistPath = gBaseTemporaryDirectoryPath + gDirectoryDoesNotExistName;
 
-                      // TODO 7492530: NSFileManager currentDirectoryPath does not actually return the current directory path
-                      // auto cwd = [NSFileManager defaultManager].currentDirectoryPath;
-                      auto cwd = [NSString stringWithCString:gBaseCurrentWorkingDirectoryPath.data() encoding:NSUTF8StringEncoding];
+                      auto cwd = [NSFileManager defaultManager].currentDirectoryPath;
                       NSURL* cwdURL = [NSURL fileURLWithPath:cwd isDirectory:YES];
                       // 1 for path separator
                       gRelativeOffsetFromBaseCurrentWorkingDirectory = strlen(cwdURL.fileSystemRepresentation) + 1;
                   });
 
+// File system functions/constants differ between platforms
+#if TARGET_OS_WIN32
     // WINOBJC: create tmp/ first
     if (_mkdir(gBaseTemporaryDirectoryPath.data()) != 0 && errno != EEXIST) {
         return false;
@@ -137,6 +136,23 @@ static boolean setup_test_paths() {
     if (_rmdir(gDirectoryDoesNotExistPath.data()) != 0 && errno != ENOENT) {
         return false;
     }
+#else
+    if (mkdir(gBaseTemporaryDirectoryPath.data(), S_IRWXU) != 0 && errno != EEXIST) {
+        return false;
+    }
+    if (creat(gFileExistsPath.data(), S_IRWXU) < 0 && errno != EEXIST) {
+        return false;
+    }
+    if (unlink(gFileDoesNotExistPath.data()) != 0 && errno != ENOENT) {
+        return false;
+    }
+    if (mkdir(gDirectoryExistsPath.data(), S_IRWXU) != 0 && errno != EEXIST) {
+        return false;
+    }
+    if (rmdir(gDirectoryDoesNotExistPath.data()) != 0 && errno != ENOENT) {
+        return false;
+    }
+#endif
 
     return true;
 }
@@ -461,20 +477,16 @@ TEST(NSURL, URLByResolvingSymlinksInPath) {
         NSURL* url = [NSURL fileURLWithPath:@"~"];
         ASSERT_OBJCEQ(url, [url copy]);
         auto result = [url URLByResolvingSymlinksInPath].absoluteString;
-        // TODO 7492530: NSFileManager currentDirectoryPath does not actually return the current directory path
-        // auto expected =
-        //     [[@"file://" stringByAppendingString:[NSFileManager defaultManager].currentDirectoryPath] stringByAppendingString:@"/~"];
-        auto expected = [[NSURL fileURLWithPath:@"."].absoluteString stringByAppendingString:@"~"];
+        auto expected =
+            [[@"file:///" stringByAppendingString:[NSFileManager defaultManager].currentDirectoryPath] stringByAppendingString:@"/~"];
         ASSERT_OBJCEQ_MSG(result, expected, @"URLByResolvingSymlinksInPath resolves relative paths using current working directory.");
     }
 
     {
         NSURL* url = [NSURL fileURLWithPath:@"anysite.com/search"];
         auto result = [url URLByResolvingSymlinksInPath].absoluteString;
-        // TODO 7492530: NSFileManager currentDirectoryPath does not actually return the current directory path
-        // auto expected = [[@"file://" stringByAppendingString:[NSFileManager defaultManager].currentDirectoryPath]
-        //     stringByAppendingString:@"/anysite.com/search"];
-        auto expected = [[NSURL fileURLWithPath:@"."].absoluteString stringByAppendingString:@"anysite.com/search"];
+        auto expected = [[@"file:///" stringByAppendingString:[NSFileManager defaultManager].currentDirectoryPath]
+            stringByAppendingString:@"/anysite.com/search"];
         ASSERT_OBJCEQ(result, expected);
     }
 

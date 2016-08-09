@@ -27,10 +27,11 @@
 #include "VAListHelper.h"
 #include "NSRaise.h"
 #include "BridgeHelpers.h"
+#import <_NSKeyValueCodingAggregateFunctions.h>
 
 @implementation NSSet
 
-+ ALLOC_PROTOTYPE_SUBCLASS_WITH_ZONE(NSSet, NSSetPrototype);
+BASE_CLASS_REQUIRED_IMPLS(NSSet, NSSetPrototype, CFSetGetTypeID);
 
 /**
  @Status Interoperable
@@ -484,12 +485,18 @@
 }
 
 /**
- @Status Stub
- @Notes
+ @Status Interoperable
 */
 - (NSSet*)objectsPassingTest:(BOOL (^)(id, BOOL*))predicate {
-    UNIMPLEMENTED();
-    return StubReturn();
+    NSMutableSet* ret = [NSMutableSet setWithCapacity:0];
+
+   [self enumerateObjectsUsingBlock:^void(id obj, BOOL* stop){
+        if (predicate(obj, stop)) {
+            [ret addObject:obj];
+        }
+    }];
+
+    return ret;
 }
 
 /**
@@ -502,20 +509,44 @@
 }
 
 /**
- @Status Stub
- @Notes
+ @Status Interoperable
 */
-- (id)valueForKey:(NSString*)key {
-    UNIMPLEMENTED();
-    return StubReturn();
+- (NSObject*)valueForKey:(NSString*)key {
+    if ([key hasPrefix:@"@"]) {
+        SEL sel = [_NSKeyValueCodingAggregateFunctions resolveFunction:[key substringFromIndex:1]];
+        if (sel == nil) {
+            return [self valueForUndefinedKey:key];
+        }
+
+        return [[_NSKeyValueCodingAggregateFunctions class] performSelector:sel withObject:self];
+    }
+
+    id ret = [NSMutableSet set];
+
+    id enumerator = [self objectEnumerator];
+    id curVal = [enumerator nextObject];
+
+    while (curVal != nil) {
+        id newvalue = [curVal valueForKey:key];
+        if (newvalue == nil) {
+            [ret addObject:[NSNull null]];
+        } else {
+            [ret addObject:newvalue];
+        }
+
+        curVal = [enumerator nextObject];
+    }
+
+    return ret;
 }
 
 /**
- @Status Stub
- @Notes
+ @Status Interoperable
 */
 - (void)setValue:(id)value forKey:(NSString*)key {
-    UNIMPLEMENTED();
+    [self enumerateObjectsUsingBlock:^void(id obj, BOOL*){
+        [obj setValue:value forKey:key];
+    }];
 }
 
 /**

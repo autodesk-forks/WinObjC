@@ -37,6 +37,12 @@
 
 #import <mutex>
 
+#import "ForFoundationOnly.h"
+
+static void _NSObjCEnumerationMutation(id object) {
+    [NSException raise:NSInternalInconsistencyException format:@"Collection <%s %p> mutated while being enumerated!", object_getClassName(object), object];
+}
+
 static BOOL _NSSelectorNotFoundIsNonFatal;
 static const wchar_t* TAG = L"Objective-C";
 
@@ -278,14 +284,23 @@ static id _NSWeakLoad(id obj) {
  @Status Interoperable
 */
 + (BOOL)instancesRespondToSelector:(SEL)selector {
-    return class_respondsToSelector(self, selector);
+    BOOL responds = class_respondsToSelector(self, selector);
+    return responds || [self resolveInstanceMethod:selector];
+}
+
+/**
+ @Status Interoperable
+*/
++ (BOOL)respondsToSelector:(SEL)selector {
+    BOOL responds = class_respondsToSelector(object_getClass(self), selector);
+    return responds || [self resolveClassMethod:selector];
 }
 
 /**
  @Status Interoperable
 */
 - (BOOL)respondsToSelector:(SEL)selector {
-    return class_respondsToSelector(object_getClass(self), selector);
+    return [object_getClass(self) instancesRespondToSelector:selector];
 }
 
 /**
@@ -298,6 +313,27 @@ static id _NSWeakLoad(id obj) {
 /**
  @Status Interoperable
 */
++ (NSMethodSignature*)methodSignatureForSelector:(SEL)selector {
+    Class metaClass = object_getClass(self);
+    Method method = class_getInstanceMethod(metaClass, selector);
+
+    if (!method && [self resolveClassMethod:selector]) {
+        method = class_getInstanceMethod(metaClass, selector);
+    }
+
+    if (!method) {
+        TraceWarning(L"Objective-C", L"+[%hs %hs]: unrecognized selector in signature lookup.", class_getName(self), sel_getName(selector));
+        return nil;
+    }
+
+    const char* methodTypes = method_getTypeEncoding(method);
+
+    return [NSMethodSignature signatureWithObjCTypes:methodTypes];
+}
+
+/**
+ @Status Interoperable
+*/
 - (NSMethodSignature*)methodSignatureForSelector:(SEL)selector {
     return [[self class] instanceMethodSignatureForSelector:selector];
 }
@@ -305,16 +341,12 @@ static id _NSWeakLoad(id obj) {
 /**
  @Status Interoperable
 */
-+ (IMP)instanceMethodForSelector:(SEL)selector {
-    IMP ret = class_getMethodImplementation(self, selector);
-    return ret;
-}
-
-/**
- @Status Interoperable
-*/
 + (NSMethodSignature*)instanceMethodSignatureForSelector:(SEL)selector {
     Method method = class_getInstanceMethod(self, selector);
+
+    if (!method && [self resolveInstanceMethod:selector]) {
+        method = class_getInstanceMethod(self, selector);
+    }
 
     if (!method) {
         TraceWarning(L"Objective-C", L"-[%hs %hs]: unrecognized selector in signature lookup.", class_getName(self), sel_getName(selector));
@@ -324,6 +356,14 @@ static id _NSWeakLoad(id obj) {
     const char* methodTypes = method_getTypeEncoding(method);
 
     return [NSMethodSignature signatureWithObjCTypes:methodTypes];
+}
+
+/**
+ @Status Interoperable
+*/
++ (IMP)instanceMethodForSelector:(SEL)selector {
+    IMP ret = class_getMethodImplementation(self, selector);
+    return ret;
 }
 
 // NOTE: long return value to allow nonfatal continuation to get a "valid" result (for non-fpret/non-stret calls)
@@ -363,12 +403,35 @@ static long _throwUnrecognizedSelectorException(id self, Class isa, SEL sel) {
 /**
  @Status Interoperable
 */
++ (BOOL)resolveClassMethod:(SEL)name {
+    return NO;
+}
+
+/**
+ @Status Interoperable
+*/
++ (BOOL)resolveInstanceMethod:(SEL)name {
+    return NO;
+}
+
+/**
+ @Status Interoperable
+*/
 - (id)forwardingTargetForSelector:(SEL)selector {
     return nil;
 }
 
 static id _NSForwardingDestination(id object, SEL selector) {
-    if (class_respondsToSelector(object_getClass(object), @selector(forwardingTargetForSelector:))) {
+    Class cls = object_getClass(object);
+    if (class_isMetaClass(cls) && class_respondsToSelector(cls, @selector(resolveClassMethod:)) && [object resolveClassMethod:selector]) {
+        return object;
+    }
+
+    if (class_respondsToSelector(object_getClass(cls), @selector(resolveInstanceMethod:)) && [cls resolveInstanceMethod:selector]) {
+        return object;
+    }
+
+    if (class_respondsToSelector(cls, @selector(forwardingTargetForSelector:))) {
         return [(NSObject*)object forwardingTargetForSelector:selector];
     }
     return nil;
@@ -523,6 +586,7 @@ static struct objc_slot* _NSSlotForward(id object, SEL selector) {
     __objc_msg_forward2 = _NSIMPForward;
     __objc_msg_forward3 = _NSSlotForward;
     _objc_weak_load = _NSWeakLoad;
+    _objc_enumeration_mutation = _NSObjCEnumerationMutation;
 
 #if defined(OBJC_APP_BRINGUP)
     _NSSelectorNotFoundIsNonFatal = YES;
@@ -563,25 +627,7 @@ static struct objc_slot* _NSSlotForward(id object, SEL selector) {
  @Status Stub
  @Notes
 */
-+ (BOOL)resolveClassMethod:(SEL)name {
-    UNIMPLEMENTED();
-    return StubReturn();
-}
-
-/**
- @Status Stub
- @Notes
-*/
 - (BOOL)isProxy {
-    UNIMPLEMENTED();
-    return StubReturn();
-}
-
-/**
- @Status Stub
- @Notes
-*/
-+ (BOOL)resolveInstanceMethod:(SEL)name {
     UNIMPLEMENTED();
     return StubReturn();
 }
@@ -589,6 +635,10 @@ static struct objc_slot* _NSSlotForward(id object, SEL selector) {
 - (id)autoContentAccessingProxy {
     UNIMPLEMENTED();
     return StubReturn();
+}
+
+- (CFTypeID)_cfTypeID {
+    return CFTypeGetTypeID();
 }
 
 @end

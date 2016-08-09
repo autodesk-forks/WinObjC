@@ -32,10 +32,10 @@
 #import "NSCFDictionary.h"
 #import "NSRaise.h"
 #import "BridgeHelpers.h"
+#import <_NSKeyValueCodingAggregateFunctions.h>
 
 static const wchar_t* TAG = L"NSDictionary";
 
-@class NSPropertyListReader;
 @class NSPropertyListSerialization;
 
 struct SortedKeysHelperCtx {
@@ -113,7 +113,7 @@ static int _NSDict_SortedKeysHelper(id key1, id key2, void* context) {
 
 @implementation NSDictionary
 
-+ ALLOC_PROTOTYPE_SUBCLASS_WITH_ZONE(NSDictionary, NSDictionaryPrototype);
+BASE_CLASS_REQUIRED_IMPLS(NSDictionary, NSDictionaryPrototype, CFDictionaryGetTypeID);
 
 /**
  @Status Interoperable
@@ -261,9 +261,13 @@ static int _NSDict_SortedKeysHelper(id key1, id key2, void* context) {
 - (id)valueForKey:(id)key {
     const char* keyName = (const char*)[key UTF8String];
 
-    if (keyName[0] == '@') {
-        TraceError(L"NSDictionary", L"Unsupported aggregate key %hs", keyName);
-        return nil;
+    if ([key hasPrefix:@"@"]) {
+        SEL sel = [_NSKeyValueCodingAggregateFunctions resolveFunction:[key substringFromIndex:1]];
+        if (sel == nil) {
+            return [self valueForUndefinedKey:key];
+        }
+
+        return [[_NSKeyValueCodingAggregateFunctions class] performSelector:sel withObject:self];
     }
 
     id ret = [self objectForKey:key];
@@ -712,6 +716,20 @@ static int _NSDict_SortedKeysHelper(id key1, id key2, void* context) {
 /**
  @Status Interoperable
 */
+- (NSArray*)keysSortedByValueWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr {
+    NSMutableArray* ret = [[[self allKeys] mutableCopy] autorelease];
+    [ret sortWithOptions:opts usingComparator:^NSComparisonResult(id key1, id key2) {
+        id val1 = [self objectForKey:key1];
+        id val2 = [self objectForKey:key2];
+        return cmptr(val1, val2);
+    }];
+
+    return ret;
+}
+
+/**
+ @Status Interoperable
+*/
 - (NSString*)description {
     thread_local unsigned int indent = 0;
     NSMutableString* s = [NSMutableString new];
@@ -781,12 +799,10 @@ static int _NSDict_SortedKeysHelper(id key1, id key2, void* context) {
         return;
     }
 
-    _enumerateWithBlock([self keyEnumerator],
-                        options,
-                        ^(id key, BOOL* stop) {
-                            id value = [self objectForKey:key];
-                            block(key, value, stop);
-                        });
+    _enumerateWithBlock([self keyEnumerator], options, ^(id key, BOOL* stop) {
+        id value = [self objectForKey:key];
+        block(key, value, stop);
+    });
 }
 
 /**
@@ -807,15 +823,6 @@ static int _NSDict_SortedKeysHelper(id key1, id key2, void* context) {
     }
 
     return result;
-}
-
-/**
- @Status Stub
- @Notes
-*/
-- (NSArray*)keysSortedByValueWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr {
-    UNIMPLEMENTED();
-    return StubReturn();
 }
 
 /**

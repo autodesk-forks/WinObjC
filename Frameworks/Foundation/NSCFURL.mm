@@ -22,11 +22,14 @@
 
 #import <StubReturn.h>
 
+@interface NSCFURL : NSURL
+@end
+
 #pragma region NSURLPrototype
 
 @implementation NSURLPrototype
 
-PROTOTYPE_CLASS_REQUIRED_IMPLS
+PROTOTYPE_CLASS_REQUIRED_IMPLS(NSCFURL)
 
 - (instancetype)initWithString:(NSString*)URLString relativeToURL:(NSURL*)baseURL {
     return reinterpret_cast<NSURLPrototype*>(
@@ -71,9 +74,6 @@ PROTOTYPE_CLASS_REQUIRED_IMPLS
 #pragma endregion
 
 #pragma region NSCFURL
-@interface NSCFURL : NSURL
-@end
-
 @implementation NSCFURL
 
 BRIDGED_CLASS_REQUIRED_IMPLS(CFURLRef, CFURLGetTypeID, NSURL, NSCFURL)
@@ -141,7 +141,7 @@ BRIDGED_CLASS_REQUIRED_IMPLS(CFURLRef, CFURLGetTypeID, NSURL, NSCFURL)
         ret = [ret stringByRemovingPercentEncoding];
 
         // Remove slashes from before drives
-        if (([ret hasPrefix:_NSGetSlashStr()]) && (_isLetter([ret characterAtIndex:1])) && ([ret characterAtIndex:2] == ':')) {
+        if ([ret length] >= 3 && ([ret hasPrefix:_NSGetSlashStr()]) && (_isLetter([ret characterAtIndex:1])) && ([ret characterAtIndex:2] == ':')) {
             ret = [ret substringFromIndex:1];
         }
 

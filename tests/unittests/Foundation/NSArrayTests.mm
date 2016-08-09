@@ -15,7 +15,7 @@
 //******************************************************************************
 
 #include <TestFramework.h>
-#include <Foundation\Foundation.h>
+#include <Foundation/Foundation.h>
 
 void assertArrayContents(NSArray* array, NSObject* first, ...) {
     va_list args;
@@ -222,7 +222,6 @@ TEST(NSArray, RemoveObjectsAtIndexes) {
     NSArray* expectedArray = @[ @0, @1, @6, @9 ];
 
     ASSERT_OBJCEQ(testArray, expectedArray);
-
 }
 
 TEST(NSArray, Description) {
@@ -261,26 +260,43 @@ TEST(NSArray, ExpandBeyondCapacity) {
 }
 
 TEST(NSArray, AddingObjects) {
-    assertArrayContents([@[@1, @2] arrayByAddingObjectsFromArray:@[@3, @4]], @1, @2, @3, @4, nil);
+    assertArrayContents([@[ @1, @2 ] arrayByAddingObjectsFromArray:@[ @3, @4 ]], @1, @2, @3, @4, nil);
 }
 
 static int objectIndexInArray(NSArray* array, int value, int startingFrom, int length, NSBinarySearchingOptions options = 0) {
     return [array indexOfObject:[NSNumber numberWithInteger:value]
                   inSortedRange:NSMakeRange(startingFrom, length)
                         options:options
-                usingComparator:^(NSNumber* a, NSNumber* b) { return [a compare:b]; }];
+                usingComparator:^(NSNumber* a, NSNumber* b) {
+                    return [a compare:b];
+                }];
 }
 
 TEST(NSArray, BinarySearchInsertionIndex) {
     NSArray* array = @[ @0, @1, @2, @2, @3, @4, @4, @6, @7, @7, @7, @8, @9, @9 ];
 
-    auto indexOfFirstNine = objectIndexInArray(array, 9, 7, 6, NSBinarySearchingFirstEqual);
+    ASSERT_TRUE_MSG(objectIndexInArray(array, 11, 0, array.count, 0) == NSNotFound, @"NSArray return NSNotFound if object is not found.");
+
+    ASSERT_TRUE_MSG(objectIndexInArray(array, 11, 0, array.count, NSBinarySearchingFirstEqual) == NSNotFound,
+                    @"NSArray return NSNotFound if object is not found.");
+
+    ASSERT_TRUE_MSG(objectIndexInArray(array, 11, 0, array.count, NSBinarySearchingLastEqual) == NSNotFound,
+                    @"NSArray return NSNotFound if object is not found.");
+
+    auto notFoundInRange = objectIndexInArray(array, 7, 0, 5);
+    ASSERT_TRUE_MSG(notFoundInRange == NSNotFound, @"NSArray return NSNotFound if object is not found.");
+
+    auto indexOfAnySeven = objectIndexInArray(array, 7, 0, array.count);
+    ASSERT_TRUE_MSG((indexOfAnySeven >= 8) && (indexOfAnySeven <= 10),
+                    @"If no options provided NSArray returns an arbitrary matching object's index.");
+
+    auto indexOfFirstNine = objectIndexInArray(array, 9, 7, array.count - 7, NSBinarySearchingFirstEqual);
     ASSERT_TRUE_MSG(indexOfFirstNine == 12, @"If NSBinarySearchingFirstEqual is set NSArray returns the lowest index of equal objects.");
 
     auto indexOfLastTwo = objectIndexInArray(array, 2, 1, 7, NSBinarySearchingLastEqual);
     ASSERT_TRUE_MSG(indexOfLastTwo == 3, @"If NSBinarySearchingLastEqual is set NSArray returns the highest index of equal objects.");
 
-    auto anyIndexToInsertNine = objectIndexInArray(array, 9, 0, 13, NSBinarySearchingInsertionIndex);
+    auto anyIndexToInsertNine = objectIndexInArray(array, 9, 0, array.count, NSBinarySearchingInsertionIndex);
     ASSERT_TRUE_MSG(
         (anyIndexToInsertNine >= 12) && (anyIndexToInsertNine <= 14),
         @"If NSBinarySearchingInsertionIndex is specified and no other options provided NSArray returns any equal or one larger "
@@ -309,7 +325,7 @@ TEST(NSArray, BinarySearchInsertionIndex) {
                     @"specified NSArray returns the index of the least greater object...");
 
     auto rangeStart = 0;
-    auto rangeLength = 13;
+    auto rangeLength = array.count;
     auto endOfArray = objectIndexInArray(array, 10, rangeStart, rangeLength, NSBinarySearchingInsertionIndex | NSBinarySearchingLastEqual);
     ASSERT_TRUE_MSG(endOfArray == (rangeStart + rangeLength),
                     @"...or the index at the end of the array if the object is larger than all other elements.");
@@ -321,4 +337,53 @@ TEST(NSArray, BinarySearchInsertionIndex) {
     ASSERT_EQ_MSG(indexInMiddle2, 1, @"If no match found item should be inserted before least greater object");
     auto indexInMiddle3 = objectIndexInArray(arrayOfTwo, 1, 0, 2, NSBinarySearchingInsertionIndex);
     ASSERT_EQ_MSG(indexInMiddle3, 1, @"If no match found item should be inserted before least greater object");
+}
+
+TEST(NSArray, MutateDuringEnumeration) {
+    __block NSMutableArray* array = [NSMutableArray arrayWithObjects:@"A", @"B", @"C", nil];
+    void (^enumerate)() = ^{
+        for (id object in array) {
+            [array addObject:@"<sound effects reminiscent of explosions>"];
+        }
+    };
+
+    ASSERT_ANY_THROW(enumerate());
+}
+
+TEST(NSArray, SortedArrayWithOptions) {
+    NSArray* unsortedArray = @[@3, @11, @2, @12, @1, @13];
+
+    NSArray* expectedSortedArray = @[@1, @2, @3, @11, @12, @13];
+    NSArray* actualSortedArray = [unsortedArray sortedArrayWithOptions:0 usingComparator:^NSComparisonResult(id obj1, id obj2) {
+        int val1 = [obj1 intValue];
+        int val2 = [obj2 intValue];
+
+        if (val1 == val2) {
+            return NSOrderedSame;
+        }
+
+        return (val1 > val2) ? NSOrderedDescending : NSOrderedAscending;
+    }];
+
+    ASSERT_OBJCEQ(expectedSortedArray, actualSortedArray);
+
+    // For our stable sort test, we compare using a comparator that treats 1, 2, and 3 as equal and 11, 12, and 13 as equal. Therefore
+    // 3, 2, and 1 should be in original order.
+    NSArray* expectedStableSort = @[@3, @2, @1, @11, @12, @13];
+    NSArray* actualStableSort = [unsortedArray sortedArrayWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
+        int val1 = [obj1 intValue];
+        int val2 = [obj2 intValue];
+
+        if (val1 < 10 && val2 < 10) {
+            return NSOrderedSame;
+        }
+
+        if (val1 > 10 && val2 > 10) {
+            return NSOrderedSame;
+        }
+
+        return (val1 > val2) ? NSOrderedDescending : NSOrderedAscending;
+    }];
+
+    ASSERT_OBJCEQ(expectedStableSort, actualStableSort);
 }

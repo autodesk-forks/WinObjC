@@ -42,7 +42,8 @@
 #import "CoreMotionViewController.h"
 #import "ShadowViewController.h"
 #import "UIPasteboardViewController.h"
-#import "WindowViewController.h"
+#import "AudioToolboxViewController.h"
+#import "CoreLocationViewController.h"
 
 #ifdef WINOBJC
 #import "XamlViewController.h"
@@ -57,10 +58,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.menuItems = [NSMutableArray array];
 
+    // AudioToolbox
+    [self addMenuItemViewController:[[AudioToolboxViewController alloc] init] andTitle:@"AudioToolbox"];
+    
     // CoreMotion
     [self addMenuItemViewController:[[CoreMotionViewController alloc] init] andTitle:@"CoreMotion"];
+    
+    // CoreLocation
+    [self addMenuItemViewController:[[CoreLocationViewController alloc] init] andTitle:@"CoreLocation"];
 
     // Foundations tests
     [self addMenuItemViewController:[[FoundationsViewController alloc] init] andTitle:@"Foundation Tests"];
@@ -69,7 +75,7 @@
     [self addMenuItemViewController:[[ControlsViewController alloc] init] andTitle:@"Controls"];
 
     // Buttons
-    [self addMenuItemViewController:[[SBButtonsViewController alloc] init] andTitle:@"SBButtonsViewController"];
+    [self addMenuItemViewController:[[ButtonsViewController alloc] init] andTitle:@"ButtonsViewController"];
 
     // AutoLayout
     [self addMenuItemViewController:[[AutoLayoutViewController alloc] init] andTitle:@"Constraint Based Layout"];
@@ -144,9 +150,6 @@
     UIViewController* controller = [board instantiateInitialViewController];
 
     [self addMenuItemViewController:controller andTitle:@"XIB Test"];
-    
-    // Window
-    [self addMenuItemViewController:[[WindowViewController alloc] init] andTitle:@"Window"];
 }
 
 - (void)didReceiveMemoryWarning {

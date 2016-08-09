@@ -24,7 +24,7 @@
 #define CONCAT(x, y) _CONCAT(x, y)
 #define TEST_IDENT(x) CONCAT(TEST_PREFIX, _##x)
 
-@interface TEST_IDENT(Observee): NSObject {
+@interface TEST_IDENT (Observee): NSObject {
     NSMutableArray* _bareArray;
     NSMutableArray* _manualNotificationArray;
     NSMutableArray* _kvcMediatedArray;
@@ -32,7 +32,7 @@
 }
 @end
 
-@implementation TEST_IDENT(Observee)
+@implementation TEST_IDENT (Observee)
 - (instancetype)init {
     if (self = [super init]) {
         _bareArray = [NSMutableArray new];
@@ -78,7 +78,7 @@
 }
 @end
 
-@interface TEST_IDENT(Observer): NSObject {
+@interface TEST_IDENT (Observer): NSObject {
     StrongId<NSArray<void (^)(NSString*, id, NSDictionary*, void*)>> _callbacks;
     NSUInteger _callbackIndex;
 }
@@ -88,7 +88,7 @@
 - (void)performBlock:(void (^)())block andExpectChangeCallbacks:(NSArray<void (^)(NSString*, id, NSDictionary*, void*)>*)callbacks;
 @end
 
-@implementation TEST_IDENT(Observer)
+@implementation TEST_IDENT (Observer)
 - (void)performBlock:(void (^)())block andExpectChangeCallbacks:(NSArray<void (^)(NSString*, id, NSDictionary*, void*)>*)callbacks {
     _hits = 0;
     _callbackIndex = 0;
@@ -106,7 +106,7 @@
 }
 @end
 
-@interface TEST_IDENT(Facade): NSObject {
+@interface TEST_IDENT (Facade): NSObject {
     StrongId<TEST_IDENT(Observee)> _observee;
     StrongId<TEST_IDENT(Observer)> _observer;
 }
@@ -115,7 +115,7 @@
     andExpectChangeCallbacks:(NSArray<void (^)(NSString*, id, NSDictionary*, void*)>*)callbacks;
 @end
 
-@implementation TEST_IDENT(Facade)
+@implementation TEST_IDENT (Facade)
 - (instancetype)init {
     if (self = [super init]) {
         _observee.attach([TEST_IDENT(Observee) new]);
@@ -163,10 +163,12 @@ TEST(KVO, ToMany_NoNotificationOnBareArray) {
     [facade observeKeyPath:@"bareArray"
                      withOptions:0
                  performingBlock:PERFORM { [observee addObjectToBareArray:@"hello"]; }
-        andExpectChangeCallbacks:@[ CHANGE_CB {
-            // Any notification here is illegal.
-            ADD_FAILURE();
-        } ]];
+        andExpectChangeCallbacks:@[
+            CHANGE_CB {
+                // Any notification here is illegal.
+                ADD_FAILURE();
+            }
+        ]];
     EXPECT_EQ(0, facade.hits);
 }
 
@@ -362,4 +364,40 @@ TEST(KVO, ToMany_KVCMediatedArrayWithHelpers) {
                  }
         andExpectChangeCallbacks:@[ firstInsertCallback, secondInsertCallback, removalCallback, illegalChangeNotification ]];
     EXPECT_EQ(3, facade.hits);
+}
+
+TEST(KVO, ToMany_KVCMediatedArrayWithHelpers_AggregateFunction) {
+    auto insertCallbackPost = CHANGE_CB {
+        EXPECT_OBJCEQ(nil, change[NSKeyValueChangeNotificationIsPriorKey]);
+        EXPECT_OBJCEQ(@(NSKeyValueChangeSetting), change[NSKeyValueChangeKindKey]);
+        EXPECT_OBJCEQ(@(0), change[NSKeyValueChangeOldKey]);
+        EXPECT_OBJCEQ(@(1), change[NSKeyValueChangeNewKey]);
+        NSIndexSet* indexes = change[NSKeyValueChangeIndexesKey];
+        EXPECT_OBJCEQ(nil, indexes);
+    };
+    auto illegalChangeNotification = CHANGE_CB {
+        ADD_FAILURE();
+    };
+
+    TEST_IDENT(Facade)* facade = [[TEST_IDENT(Facade) new] autorelease];
+    [facade observeKeyPath:@"arrayWithHelpers.@count"
+                     withOptions:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
+                 performingBlock:PERFORM {
+                     // This array is assisted by setter functions, and should also dispatch one notification per change.
+                     NSMutableArray* mediatedVersionOfArray = [observee mutableArrayValueForKey:@"arrayWithHelpers"];
+                     [mediatedVersionOfArray addObject:@"object1"];
+                 }
+        andExpectChangeCallbacks:@[ insertCallbackPost, illegalChangeNotification ]];
+    EXPECT_EQ(1, facade.hits);
+
+    facade = [[TEST_IDENT(Facade) new] autorelease];
+    // In this test, we use the same arrayWithHelpers as above, but interact with it manually.
+    [facade observeKeyPath:@"arrayWithHelpers.@count"
+                     withOptions:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
+                 performingBlock:PERFORM {
+                     // This array is assisted by setter functions, and should also dispatch one notification per change.
+                     [observee insertObject:@"object1" inArrayWithHelpersAtIndex:0];
+                 }
+        andExpectChangeCallbacks:@[ insertCallbackPost, illegalChangeNotification ]];
+    EXPECT_EQ(1, facade.hits);
 }

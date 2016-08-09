@@ -1,5 +1,6 @@
 //******************************************************************************
 //
+// Copyright (c) 2016 Intel Corporation. All rights reserved.
 // Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 //
 // This code is licensed under the MIT License (MIT).
@@ -16,6 +17,11 @@
 
 #import <StubReturn.h>
 #import <CoreGraphics/CGBitmapContext.h>
+#import <CoreGraphics/CGContext.h>
+#import "CGContextInternal.h"
+#import <CoreGraphics/CGImage.h>
+
+static const wchar_t* TAG = L"CGBitmapContext";
 
 /**
  @Status Stub
@@ -45,40 +51,61 @@ CGImageRef CGBitmapContextCreateImage(CGContextRef context) {
 }*/
 
 /**
- @Status Stub
- @Notes
+@Status Interoperable
+@Notes
 */
 CGBitmapInfo CGBitmapContextGetBitmapInfo(CGContextRef context) {
-    UNIMPLEMENTED();
-    return StubReturn();
+    int ret;
+
+    if (context) {
+        ret = context->Backing()->DestImage()->Backing()->BitmapInfo();
+    }
+    else {
+        TraceWarning(TAG, L"CGBitmapContextGetBitmapInfo: Null context!");
+        ret = 0;
+    }
+
+    return (CGBitmapInfo)ret;
 }
 
 /**
- @Status Stub
- @Notes
+@Status Interoperable
+@Notes
 */
-/*
 CGImageAlphaInfo CGBitmapContextGetAlphaInfo(CGContextRef context) {
-    UNIMPLEMENTED();
-    return StubReturn();
-}*/
+    int ret;
+
+    if (context) {
+        ret = context->Backing()->DestImage()->Backing()->BitmapInfo() & kCGBitmapAlphaInfoMask;
+    }
+    else {
+        TraceWarning(TAG, L"CGBitmapContextGetAlphaInfo: Null context!");
+        ret = 0;
+    }
+
+    return (CGImageAlphaInfo)ret;
+}
 
 /**
- @Status Stub
+ @Status Interoperable
  @Notes
 */
 size_t CGBitmapContextGetBitsPerComponent(CGContextRef context) {
-    UNIMPLEMENTED();
-    return StubReturn();
+    CGImageRef imageRef = context->Backing()->DestImage();
+    size_t bitsPerComponent = CGImageGetBitsPerComponent(imageRef);
+    return bitsPerComponent;
 }
 
 /**
- @Status Stub
- @Notes
+ @Status Caveat
+ @Notes UIView in Islandwood ignores alpha by default, which differs from iOS.
+ Expect returns of 24 bits on Islandwood where 32 bits is expected on iOS.
 */
 size_t CGBitmapContextGetBitsPerPixel(CGContextRef context) {
-    UNIMPLEMENTED();
-    return StubReturn();
+    CGImageRef imageRef = context->Backing()->DestImage();
+    const size_t bytesPerPixel = imageRef->Backing()->BytesPerPixel();
+    const size_t bitsPerByte = 8;
+    return bytesPerPixel * bitsPerByte;
 }
 
 /**
@@ -97,7 +124,7 @@ CGColorSpaceRef CGBitmapContextGetColorSpace(CGContextRef context) {
 */
 /*
 void * CGBitmapContextGetData(CGContextRef context) {
-    UNIMPLEMENTED();
+	UNIMPLEMENTED();
     return StubReturn();
 }*/
 

@@ -14,22 +14,22 @@
 //
 //******************************************************************************
 
-#ifndef __CGCONTEXTINTERNAL_H
-#define __CGCONTEXTINTERNAL_H
+#pragma once
 
-#include "Starboard.h"
-#include "CoreGraphics/CGContext.h"
 #include "CGImageInternal.h"
+#include "CoreGraphics/CGContext.h"
+#include "CoreGraphicsInternal.h"
+#include "Starboard.h"
 
 #include <objc/runtime.h>
 
 class CGContextImpl;
 COREGRAPHICS_EXPORT void EbrCenterTextInRectVertically(CGRect* rect, CGSize* textSize, id font);
-COREGRAPHICS_EXPORT CGContextRef CGBitmapContextCreate32(int width,
-                                                         int height,
-                                                         DisplayTexture* texture = NULL,
-                                                         DisplayTextureLocking* locking = NULL);
-COREGRAPHICS_EXPORT CGContextRef CGBitmapContextCreate24(int width, int height);
+COREGRAPHICS_EXPORT CGContextRef _CGBitmapContextCreateWithTexture(int width,
+                                                                   int height,
+                                                                   DisplayTexture* texture = NULL,
+                                                                   DisplayTextureLocking* locking = NULL);
+COREGRAPHICS_EXPORT CGContextRef _CGBitmapContextCreateWithFormat(int width, int height, __CGSurfaceFormat fmt);
 COREGRAPHICS_EXPORT CGImageRef CGBitmapContextGetImage(CGContextRef ctx);
 COREGRAPHICS_EXPORT void CGContextDrawImageRect(CGContextRef ctx, CGImageRef img, CGRect src, CGRect dst);
 COREGRAPHICS_EXPORT void CGContextClearToColor(CGContextRef ctx, float r, float g, float b, float a);
@@ -44,8 +44,9 @@ COREGRAPHICS_EXPORT CGImageRef CGPNGImageCreateFromData(NSData* data);
 
 COREGRAPHICS_EXPORT CGImageRef CGJPEGImageCreateFromFile(NSString* path);
 COREGRAPHICS_EXPORT CGImageRef CGJPEGImageCreateFromData(NSData* data);
+COREGRAPHICS_EXPORT bool CGContextIsPointInPath(CGContextRef c, bool eoFill, float x, float y);
 
-class __CGContext: private objc_object {
+class __CGContext : private objc_object {
 public:
     float scale;
     CGContextImpl* _backing;
@@ -55,6 +56,5 @@ public:
 
     CGContextImpl* Backing();
 };
-#include "CGContextImpl.h"
 
-#endif
+#include "CGContextImpl.h"

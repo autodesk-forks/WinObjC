@@ -20,16 +20,17 @@
 #import <CoreGraphics/CGContext.h>
 #import <CoreGraphics/CGPath.h>
 #import <CoreGraphics/CGLayer.h>
+#import "CGColorSpaceInternal.h"
+#import "CGContextInternal.h"
+#include "LoggingNative.h"
+#import "_CGLifetimeBridgingType.h"
 #import <CoreGraphics/CGAffineTransform.h>
 #import <CoreGraphics/CGGradient.h>
 #import <Foundation/NSString.h>
 #import <UIKit/UIImage.h>
 #import <UIKit/UIFont.h>
 #import <UIKit/UIColor.h>
-#import "CGContextInternal.h"
-#import "CGColorSpaceInternal.h"
-#import "_CGLifetimeBridgingType.h"
-#include "LoggingNative.h"
+#import "CGSurfaceInfoInternal.h"
 #import <pthread.h>
 
 static const wchar_t* TAG = L"CGContext";
@@ -93,11 +94,10 @@ void CGContextSetFillPattern(CGContextRef ctx, CGPatternRef pattern, const float
 }
 
 /**
- @Status Stub
+ @Status Interoperable
 */
 void CGContextSetPatternPhase(CGContextRef ctx, CGSize phase) {
-    UNIMPLEMENTED();
-    TraceWarning(TAG, L"CGContextSetPatternPhase not implemented");
+    return ctx->Backing()->CGContextSetPatternPhase(phase);
 }
 
 /**
@@ -758,34 +758,32 @@ void CGContextAddLines(CGContextRef pContext, const CGPoint* pt, unsigned count)
 }
 
 /**
- @Status Stub
+ @Status Interoperable
 */
 void CGContextBeginTransparencyLayer(CGContextRef ctx, CFDictionaryRef auxInfo) {
-    UNIMPLEMENTED();
     ctx->Backing()->CGContextBeginTransparencyLayer((id)auxInfo);
 }
 
 /**
- @Status Stub
+ @Status Interoperable
 */
 void CGContextEndTransparencyLayer(CGContextRef ctx) {
-    UNIMPLEMENTED();
     ctx->Backing()->CGContextEndTransparencyLayer();
 }
 
 /**
- @Status Stub
- @Notes Always returns RGBA
+ @Status Interoperable
 */
-CGColorSpaceRef CGBitmapContextGetColorSpace(CGContextRef context) {
-    UNIMPLEMENTED();
-    return (CGColorSpaceRef) new __CGColorSpace(_ColorRGBA);
+CGColorSpaceRef CGBitmapContextGetColorSpace(CGContextRef ctx) {
+    // TODO: Consider caching colorspaceRef in CGImageRef
+    return (CGColorSpaceRef) new __CGColorSpace(ctx->Backing()->DestImage()->Backing()->ColorSpaceModel());
 }
 
 /**
  @Status Caveat
- @Notes Limited bitmap formats available
-*/
+ @Notes Limited bitmap formats available. Decode, shouldInterpolate, intent parameters
+ and some byte orders ignored.
+ */
 CGContextRef CGBitmapContextCreate(void* data,
                                    size_t width,
                                    size_t height,
@@ -794,79 +792,46 @@ CGContextRef CGBitmapContextCreate(void* data,
                                    CGColorSpaceRef colorSpace,
                                    CGBitmapInfo bitmapInfo) {
     CGImageRef newImage = NULL;
-    DWORD alphaType = bitmapInfo & 0x1F;
-    DWORD byteOrder = bitmapInfo & kCGBitmapByteOrderMask;
+    DWORD alphaType = bitmapInfo & kCGBitmapAlphaInfoMask;
 
-    if (byteOrder != 0) {
-        TraceInfo(TAG, L"CGBitmapContextCreate needs to process byte ordering");
-    }
+    bool colorSpaceAllocated = false;
 
     if (colorSpace == NULL) {
-        TraceWarning(TAG, L"Warning: colorSpace = NULL, assuming grayscale");
-        newImage = new CGBitmapImage(width, height, _ColorGrayscale, data);
-
-        CGContextRef ret = new __CGContext(newImage);
-        CFRelease((id)newImage);
-
-        return ret;
-    }
-
-    if (((__CGColorSpace*)colorSpace)->colorSpace == _ColorRGBA || ((__CGColorSpace*)colorSpace)->colorSpace == _ColorRGB32) {
-        switch (bitsPerComponent) {
-            case 8:
-                switch (alphaType) {
-                    case kCGImageAlphaNoneSkipFirst:
-                        newImage = new CGBitmapImage(width, height, _ColorRGB32, data);
-                        break;
-
-                    case kCGImageAlphaNoneSkipLast:
-                        newImage = new CGBitmapImage(width, height, _ColorRGB32HE, data);
-                        break;
-
-                    case kCGImageAlphaFirst:
-                    case kCGImageAlphaPremultipliedLast: //  [TODO: Make this true]
-                    case kCGImageAlphaPremultipliedFirst: //  [TODO: Make this true]
-                        newImage = new CGBitmapImage(width, height, _ColorRGBA, data);
-                        break;
-
-                    case kCGImageAlphaNone:
-                        newImage = new CGBitmapImage(width, height, _ColorRGB, data);
-                        break;
-
-                    default:
-                        assert(0);
-                        break;
-                }
-                break;
-
-            case 5:
-                switch (alphaType) {
-                    case kCGImageAlphaNone:
-                    case kCGImageAlphaNoneSkipFirst:
-                        newImage = new CGBitmapImage(width, height, _Color565, data);
-                        break;
-
-                    default:
-                        assert(0);
-                        break;
-                }
-                break;
-
-            case 0:
-                TraceWarning(TAG,
-                             L"Warning: Invalid number of bits per component passed to "
-                             "CGBitmapContextCreate");
-                return 0;
-
-            default:
-                assert(0);
+        if (bytesPerRow >= (width * 3)) {
+            TraceWarning(TAG, L"Warning: colorSpace = NULL, assuming RGB based on bytesPerRow.");
+            colorSpace = CGColorSpaceCreateDeviceRGB();
+        } else {
+            TraceWarning(TAG, L"Warning: colorSpace = NULL, assuming Gray based on bytesPerRow.");
+            colorSpace = CGColorSpaceCreateDeviceGray();
         }
-    } else {
-        newImage = new CGBitmapImage(width, height, ((__CGColorSpace*)colorSpace)->colorSpace, data);
+
+        colorSpaceAllocated = true;
     }
+
+    const unsigned int numColorComponents = CGColorSpaceGetNumberOfComponents(colorSpace);
+    const unsigned int numComponents = numColorComponents + ((alphaType == kCGImageAlphaNone) ? 0 : 1);
+    const unsigned int bitsPerPixel = (bitsPerComponent == 5) ? 16 : numComponents * bitsPerComponent;
+
+    __CGSurfaceFormat format = _CGImageGetFormat(bitsPerComponent, bitsPerPixel, colorSpace, bitmapInfo);
+
+    __CGSurfaceInfo surfaceInfo = __CGSurfaceInfo(((__CGColorSpace*)colorSpace)->colorSpaceModel,
+                                                  bitmapInfo,
+                                                  bitsPerComponent,
+                                                  bitsPerPixel >> 3,
+                                                  width,
+                                                  height,
+                                                  bytesPerRow,
+                                                  data,
+                                                  format);
+
+    newImage = new CGBitmapImage(surfaceInfo);
 
     CGContextRef ret = new __CGContext(newImage);
     CFRelease((id)newImage);
+
+    if (colorSpaceAllocated == true) {
+        CGColorSpaceRelease(colorSpace);
+    }
 
     return ret;
 }
@@ -959,9 +924,9 @@ CGSize CGContextConvertSizeToUserSpace(CGContextRef c, CGSize size) {
 /**
  @Status Stub
 */
-CGPoint CGContextConvertSizeToDeviceSpace(CGContextRef ctx, CGPoint pt) {
+CGSize CGContextConvertSizeToDeviceSpace(CGContextRef ctx, CGSize size) {
     UNIMPLEMENTED();
-    return pt;
+    return size;
 }
 
 /**
@@ -1035,34 +1000,6 @@ size_t CGBitmapContextGetBytesPerRow(CGContextRef ctx) {
 }
 
 /**
- @Status Caveat
- @Notes Only returns kCGImageAlphaFirst or kCGImageAlphaLast
-*/
-CGImageAlphaInfo CGBitmapContextGetAlphaInfo(CGContextRef ctx) {
-    if (!ctx) {
-        TraceWarning(TAG, L"CGBitmapContextGetAlphaInfo: nil!");
-        return (CGImageAlphaInfo)0;
-    }
-
-    uint32_t ret = 0;
-
-    switch (ctx->Backing()->DestImage()->Backing()->SurfaceFormat()) {
-        case _ColorARGB:
-            ret |= kCGImageAlphaLast;
-            break;
-
-        case _ColorRGBA:
-            ret |= kCGImageAlphaFirst;
-            break;
-        default:
-            UNIMPLEMENTED_WITH_MSG("Unsupported surface format %d.", ctx->Backing()->DestImage()->Backing()->SurfaceFormat());
-            break;
-    }
-
-    return (CGImageAlphaInfo)ret;
-}
-
-/**
  @Status Interoperable
 */
 void* CGBitmapContextGetData(CGContextRef ctx) {
@@ -1097,12 +1034,14 @@ CGImageRef CGBitmapContextGetImage(CGContextRef ctx) {
     return ctx->Backing()->DestImage();
 }
 
-CGContextRef CGBitmapContextCreate32(int width, int height, DisplayTexture* texture, DisplayTextureLocking* locking) {
+CGContextRef _CGBitmapContextCreateWithTexture(int width, int height, DisplayTexture* texture, DisplayTextureLocking* locking) {
     CGImageRef newImage = nullptr;
+    __CGSurfaceInfo surfaceInfo = _CGSurfaceInfoInit(width, height, _ColorARGB);
+
     if (texture) {
-        newImage = new CGGraphicBufferImage(width, height, _ColorARGB, texture, locking);
+        newImage = new CGGraphicBufferImage(surfaceInfo, texture, locking);
     } else {
-        newImage = new CGBitmapImage(width, height, _ColorARGB);
+        newImage = new CGBitmapImage(surfaceInfo);
     }
 
     CGContextRef context = new __CGContext(newImage);
@@ -1111,8 +1050,9 @@ CGContextRef CGBitmapContextCreate32(int width, int height, DisplayTexture* text
     return context;
 }
 
-CGContextRef CGBitmapContextCreate24(int width, int height) {
-    CGImageRef newImage = new CGBitmapImage(width, height, _ColorRGB);
+CGContextRef _CGBitmapContextCreateWithFormat(int width, int height, __CGSurfaceFormat fmt) {
+    __CGSurfaceInfo surfaceInfo = _CGSurfaceInfoInit(width, height, fmt);
+    CGImageRef newImage = new CGBitmapImage(surfaceInfo);
     CGContextRef context = new __CGContext(newImage);
     CGImageRelease(newImage);
 
@@ -1136,21 +1076,19 @@ void CGContextBeginPage(CGContextRef c, const CGRect* mediaBox) {
 }
 
 /**
- @Status Stub
+ @Status Interoperable
  @Notes
 */
 void CGContextBeginTransparencyLayerWithRect(CGContextRef ctx, CGRect rect, CFDictionaryRef auxInfo) {
-    ctx->Backing()->CGContextBeginTransparencyLayer((id)auxInfo);
-    UNIMPLEMENTED();
+    ctx->Backing()->CGContextBeginTransparencyLayerWithRect(rect, (id)auxInfo);
 }
 
 /**
- @Status Stub
+ @Status Interoperable
  @Notes
 */
 CGPathRef CGContextCopyPath(CGContextRef c) {
-    UNIMPLEMENTED();
-    return StubReturn();
+    return c->Backing()->CGContextCopyPath();
 }
 
 /**
@@ -1305,4 +1243,8 @@ CGImageRef CGJPEGImageCreateFromFile(NSString* path) {
 
 CGImageRef CGJPEGImageCreateFromData(NSData* data) {
     return new CGJPEGDecoderImage(data);
+}
+
+bool CGContextIsPointInPath(CGContextRef c, bool eoFill, float x, float y) {
+    return c->Backing()->CGContextIsPointInPath(eoFill, x, y);
 }

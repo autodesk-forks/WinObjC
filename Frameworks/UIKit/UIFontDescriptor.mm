@@ -100,7 +100,7 @@ const float c_buttonFontSize = 14.0f;
 + (UIFontDescriptor*)fontDescriptorWithDescriptor:(UIFontDescriptor*)descriptor size:(CGFloat)size {
     UIFontDescriptor* fontDescriptor = [[UIFontDescriptor alloc] init];
     fontDescriptor->_name = descriptor->_name;
-    fontDescriptor->_size = size;
+    fontDescriptor->_size = [UIFontDescriptor _getFallBackFontSize:size];
     fontDescriptor->_traits = descriptor->_traits;
     return [fontDescriptor autorelease];
 }
@@ -128,9 +128,7 @@ const float c_buttonFontSize = 14.0f;
 }
 
 + (float)_getFallBackFontSize:(float)size {
-    // We need to set the maximun of size, since xaml will crash if it is too big.
-    float const maxSize = 100;
-    if (size <= 0 || size > maxSize) {
+    if (size <= 0) {
         return c_systemFontSize;
     } else {
         return size;

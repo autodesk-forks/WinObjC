@@ -145,6 +145,8 @@ CF_EXPORT Boolean _CFGetCurrentDirectory(char *path, int maxlen);
 
 CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
 
+CF_EXPORT void __CFSocketInitializeWinSock(void); // WINOBJC
+
 CF_EXPORT CFStringRef _CFStringCreateHostName(void);
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
@@ -618,6 +620,11 @@ CF_PRIVATE Boolean _CFReadBytesFromFile(CFAllocatorRef alloc, CFURLRef url, void
 
 CF_EXPORT Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex length);
 
+// WINOBJC: asynchronous write helper for faster file i/o
+#if DEPLOYMENT_TARGET_WINDOWS
+CF_EXPORT Boolean _CFWriteBytesToFileAsync(CFURLRef url, const void *bytes, CFIndex length);
+#endif
+
 CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, char *dirPath, void *dirSpec, CFURLRef dirURL, CFStringRef matchingAbstractType);
     /* On Mac OS 8/9, one of dirSpec, dirPath and dirURL must be non-NULL */
     /* On all other platforms, one of path and dirURL must be non-NULL */
@@ -700,11 +707,14 @@ CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
 CF_INLINE bool __CF_IsBridgedObject(CFTypeRef obj) {
     CFRuntimeBase* object = (CFRuntimeBase*)obj;
     if (!object || 
-        (object->_cfisa == 0) || 
-        (object->_cfisa == (uintptr_t)(&_OBJC_CLASS__NSCFString)) || 
+        (object->_cfisa == 0)) {
+        return false;
+    }
+
+    if ((object->_cfisa == (uintptr_t)(&_OBJC_CLASS__NSCFString)) || 
         (object->_cfisa == (uintptr_t)(&_OBJC_CLASS__NSCFNumber)) || 
         (object->_cfisa == (uintptr_t)(&_OBJC_CLASS__NSCFBoolean))) {
-        return false;
+        return true;
     }
 
     for (unsigned int i = 0; i < __CFRuntimeClassTableSize; i++) {

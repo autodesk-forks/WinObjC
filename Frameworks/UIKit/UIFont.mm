@@ -448,7 +448,7 @@ static vector<wstring> _getFontNamesForFamilyName(wchar_t* familyName) {
 */
 + (UIFont*)fontWithName:(NSString*)name size:(float)size {
 
-    if (size == 0.0f) {
+    if (size <= 0) {
         size = [self systemFontSize];
     }
 
@@ -493,7 +493,7 @@ static vector<wstring> _getFontNamesForFamilyName(wchar_t* familyName) {
  @Public        Yes
 */
 + (UIFont*)fontWithDescriptor:(UIFontDescriptor*)descriptor size:(CGFloat)fontSize {
-    if (fontSize <= 0.0f) {
+    if (fontSize <= 0) {
         fontSize = descriptor.pointSize;
     }
 
@@ -618,7 +618,7 @@ void loadFont(UIFont* self) {
     if ([_name length] < 1) {
         // fallback to default if could not find a font name
         _name = c_defaultFontName;
-    } 
+    }
 
     _size = [coder decodeFloatForKey:@"UIFontPointSize"];
     _horizontalScale = 1.0f;
@@ -638,6 +638,10 @@ void loadFont(UIFont* self) {
 */
 - (UIFont*)fontWithSize:(float)size {
     UIFont* ret = [UIFont alloc];
+
+    if (size <= 0) {
+        size = [[self class] systemFontSize];
+    }
 
     ret->_font = _font;
     ret->_sizingFont = _sizingFont;
@@ -889,7 +893,10 @@ void loadFont(UIFont* self) {
     return TRUE;
 }
 
-- (NSObject*)copyWithZone:(NSZone*)zone {
+/**
+@Status Interoperable
+*/
+- (instancetype)copyWithZone:(NSZone*)zone {
     return [self retain];
 }
 
