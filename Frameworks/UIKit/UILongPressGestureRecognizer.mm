@@ -155,37 +155,40 @@ static TrackedTouch* findTouch(UITouch* touch, std::vector<TrackedTouch>& touche
 - (void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event {
     TraceVerbose(TAG, L"UILongPressGestureRecognizer:touchesMoved. begining state = %d", self.state);
 
-    // for each of the touch, caculate the distance
-    for (UITouch* touch in touches) {
-        FAIL_FAST_HR_IF(E_UNEXPECTED, [touch phase] != UITouchPhaseMoved);
-        TrackedTouch* originalTouch = findTouch(touch, _trackedTouches);
-        if (originalTouch == nil) {
-            continue;
-        }
+	// ADSK: distance should NOT be tracked after the long press gesture has fired
+	if (self.state != UIGestureRecognizerStateBegan && self.state != UIGestureRecognizerStateChanged) {
+		// for each of the touch, calculate the distance
+		for (UITouch* touch in touches) {
+			FAIL_FAST_HR_IF(E_UNEXPECTED, [touch phase] != UITouchPhaseMoved);
+			TrackedTouch* originalTouch = findTouch(touch, _trackedTouches);
+			if (originalTouch == nil) {
+				continue;
+			}
 
-        CGPoint currentPosition = [touch locationInView:nil];
-        CGPoint originalPostion = originalTouch->startPosition;
+			CGPoint currentPosition = [touch locationInView:nil];
+			CGPoint originalPostion = originalTouch->startPosition;
 
-        if (sqrt(pow(currentPosition.x - originalPostion.x, 2) + pow(currentPosition.y - originalPostion.y, 2)) > allowableMovement) {
-            // distance moved more than allowed for one touch, transit the state to corresponding state and invaldiate timer
-            // if a gesture has already been UIGestureRecognizerStateBegan or UIGestureRecognizerStateChanged state
-            // The gesture should transit to ended state .
-            // if a gesture is in possible state, has not began yet, it will transit to failed state directly
-            TraceVerbose(TAG, L"UILongPressGestureRecognizer:touchesMoved distance beyond allowable distance");
+			if (sqrt(pow(currentPosition.x - originalPostion.x, 2) + pow(currentPosition.y - originalPostion.y, 2)) > allowableMovement) {
+				// distance moved more than allowed for one touch, transit the state to corresponding state and invaldiate timer
+				// if a gesture has already been UIGestureRecognizerStateBegan or UIGestureRecognizerStateChanged state
+				// The gesture should transit to ended state .
+				// if a gesture is in possible state, has not began yet, it will transit to failed state directly
+				TraceVerbose(TAG, L"UILongPressGestureRecognizer:touchesMoved distance beyond allowable distance");
 
-            if (self.state == UIGestureRecognizerStateBegan || self.state == UIGestureRecognizerStateChanged) {
-                self.state = UIGestureRecognizerStateEnded;
-            } else if (self.state == UIGestureRecognizerStatePossible) {
-                self.state = UIGestureRecognizerStateFailed;
-            }
+				if (self.state == UIGestureRecognizerStateBegan || self.state == UIGestureRecognizerStateChanged) {
+					self.state = UIGestureRecognizerStateEnded;
+				} else if (self.state == UIGestureRecognizerStatePossible) {
+					self.state = UIGestureRecognizerStateFailed;
+				}
 
-            // in any case, invalidate the timer if necessary
-            if (_recognizeTimer != nil) {
-                [_recognizeTimer invalidate];
-            }
-            break;
-        }
-    }
+				// in any case, invalidate the timer if necessary
+				if (_recognizeTimer != nil) {
+					[_recognizeTimer invalidate];
+				}
+				break;
+			}
+		}
+	}
 
     if ((self.state != UIGestureRecognizerStateEnded) && (self.state != UIGestureRecognizerStateFailed)) {
         // after distance calculation, if gesture didn't fail, transit state to change state if it is already Began state
