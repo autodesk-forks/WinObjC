@@ -24,6 +24,7 @@
 #import "UIWindowInternal.h"
 #import "UIViewControllerInternal.h"
 #import "UIGestureRecognizerInternal.h"
+#import "UIKit/UIGestureRecognizerSubclass.h"
 #import "CALayerInternal.h"
 #import "CAAnimationInternal.h"
 #import <AutoLayout.h>
@@ -234,6 +235,11 @@ BOOL g_resetAllTrackingGestures = TRUE;
 			if ( currentResponds == NO || [curGesture.delegate gestureRecognizer:curGesture shouldRecognizeSimultaneouslyWithGestureRecognizer:activeGesture] == NO ) {
 				[gesturesToRemove addObject:curGesture];
 			}else if ( activeResponds == NO || [activeGesture.delegate gestureRecognizer:curGesture shouldRecognizeSimultaneouslyWithGestureRecognizer:activeGesture] == NO ) {
+				[gesturesToRemove addObject:curGesture];
+			}
+
+			BOOL canPrevent = [activeGesture canPreventGestureRecognizer:curGesture] ;
+			if ( canPrevent == YES ) {
 				[gesturesToRemove addObject:curGesture];
 			}
 		}
