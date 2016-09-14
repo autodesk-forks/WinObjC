@@ -680,7 +680,28 @@ BASE_CLASS_REQUIRED_IMPLS(NSString, NSStringPrototype, CFStringGetTypeID);
  @Status Interoperable
 */
 - (instancetype)lastPathComponent {
-    return [self substringFromIndex:_CFStartOfLastPathComponent2(static_cast<CFStringRef>(self))];
+    if ([self length] == 0) {
+        return @"";
+    }
+
+    CFIndex index = _CFStartOfLastPathComponent2(static_cast<CFStringRef>(self));
+    NSString* substring = [self substringFromIndex:index];
+
+    if (IS_SLASH([self characterAtIndex:index])) {
+        if ([self length] == 1) {
+            // Substring is @"/" so we just return it
+            return substring;
+        }
+
+        // The only way we could have ended up here is if we have a string with multiple leading slashes.
+        // Splitting "foobar" on slash will return @["foobar"] if there are no slashes making this safe
+        NSArray<NSString*>* tokens = [self componentsSeparatedByString:_NSGetSlashStr()];
+        return ([tokens[0] isEqualToString:@""]) ? _NSGetSlashStr() : tokens[0];
+    }
+
+    // Remove trailing slashes
+    NSArray<NSString*>* tokens = [substring componentsSeparatedByString:_NSGetSlashStr()];
+    return tokens[0];
 }
 
 /**
@@ -779,7 +800,7 @@ BASE_CLASS_REQUIRED_IMPLS(NSString, NSStringPrototype, CFStringGetTypeID);
 /**
  @Status Interoperable
 */
-- (int)intValue {
+- (int32_t)intValue {
     char* str = (char*)[self UTF8String];
     return strtol(str, nullptr, 10);
 }
@@ -788,7 +809,8 @@ BASE_CLASS_REQUIRED_IMPLS(NSString, NSStringPrototype, CFStringGetTypeID);
  @Status Interoperable
 */
 - (NSInteger)integerValue {
-    return [self intValue];
+    char* str = (char*)[self UTF8String];
+    return strtol(str, nullptr, 10);
 }
 
 /**

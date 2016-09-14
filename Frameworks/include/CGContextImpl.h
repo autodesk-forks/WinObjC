@@ -85,7 +85,9 @@ public:
     CGContextImpl(CGContextRef base, CGImageRef destinationImage);
     virtual ~CGContextImpl();
 
-    inline CGImageRef DestImage() { return _imgDest; }
+    inline CGImageRef DestImage() {
+        return _imgDest;
+    }
 
     virtual void CGContextSetBlendMode(CGBlendMode mode);
     virtual CGBlendMode CGContextGetBlendMode();

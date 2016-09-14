@@ -596,11 +596,8 @@ TEST(NSString, Exceptions) {
     EXPECT_ANY_THROW([(NSMutableString*)immutableFormattedString replaceCharactersInRange:range withString:@"boom"]);
 }
 
-class StringsFormatPropertyList : public ::testing::TestWithParam<const wchar_t*> {};
-
-TEST_P(StringsFormatPropertyList, CanDeserialize) {
-    const wchar_t* data = GetParam();
-    NSString* string = [NSString stringWithCharacters:(const unichar*)data length:wcslen(data)];
+TEST(NSString, StringsFormatPropertyList) {
+    NSString* string = @"key1=value1;\n\"key2\"=\"value2\";";
 
     ASSERT_OBJCNE(nil, string);
 
@@ -612,8 +609,70 @@ TEST_P(StringsFormatPropertyList, CanDeserialize) {
     ASSERT_OBJCEQ(@"value2", propertyList[@"key2"]);
 }
 
-INSTANTIATE_TEST_CASE_P(NSString,
-                        StringsFormatPropertyList,
-                        ::testing::Values(L"\uFEFFkey1=value1;\n\"key2\"=\"value2\";", // BOM
-                                          L"key1=value1;\n\"key2\"=\"value2\";" // No BOM
-                                          ));
+TEST(NSString, LastPathComponent) {
+    NSString* string = @"";
+    EXPECT_OBJCEQ(@"", string.lastPathComponent);
+
+    string = @"hello.world";
+    EXPECT_OBJCEQ(@"hello.world", string.lastPathComponent);
+
+    string = @"/";
+    EXPECT_OBJCEQ(@"/", string.lastPathComponent);
+
+#if TARGET_OS_WIN32
+    // Backward slash isn't properly supported in OSX, you end up getting FolderA\file.plist
+    string = @"C:\\FolderA\\file.plist";
+    EXPECT_OBJCEQ(@"file.plist", string.lastPathComponent);
+#endif
+
+    string = @"/tmp/scratch.tiff";
+    EXPECT_OBJCEQ(@"scratch.tiff", string.lastPathComponent);
+
+    string = @".scratch.tiff";
+    EXPECT_OBJCEQ(@".scratch.tiff", string.lastPathComponent);
+
+    string = @"/tmp/scratch";
+    EXPECT_OBJCEQ(@"scratch", string.lastPathComponent);
+
+    string = @".tiff";
+    EXPECT_OBJCEQ(@".tiff", string.lastPathComponent);
+
+    string = @".";
+    EXPECT_OBJCEQ(@".", string.lastPathComponent);
+
+    string = @"foo.";
+    EXPECT_OBJCEQ(@"foo.", string.lastPathComponent);
+
+    string = @"/tmp/";
+    EXPECT_OBJCEQ(@"tmp", string.lastPathComponent);
+
+    string = @"scratch///";
+    EXPECT_OBJCEQ(@"scratch", string.lastPathComponent);
+
+    string = @"////";
+    EXPECT_OBJCEQ(@"/", string.lastPathComponent);
+
+    string = @"/tmp/scratch..tiff";
+    EXPECT_OBJCEQ(@"scratch..tiff", string.lastPathComponent);
+
+    string = @"/tmp/random.foo.tiff";
+    EXPECT_OBJCEQ(@"random.foo.tiff", string.lastPathComponent);
+
+    string = @"/temp//foo//bar.txt";
+    EXPECT_OBJCEQ(@"bar.txt", string.lastPathComponent);
+
+    string = @"/.";
+    EXPECT_OBJCEQ(@".", string.lastPathComponent);
+
+    string = @"/foo/bar/.";
+    EXPECT_OBJCEQ(@".", string.lastPathComponent);
+
+    string = @"/baz/bar/.foo";
+    EXPECT_OBJCEQ(@".foo", string.lastPathComponent);
+
+    string = @"/tmp/foo.";
+    EXPECT_OBJCEQ(@"foo.", string.lastPathComponent);
+
+    string = @"/tmp/foo///";
+    EXPECT_OBJCEQ(@"foo", string.lastPathComponent);
+}

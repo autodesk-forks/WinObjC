@@ -1,6 +1,6 @@
 //******************************************************************************
 //
-// Copyright (c) 2015 Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 //
 // This code is licensed under the MIT License (MIT).
 //
@@ -16,8 +16,9 @@
 
 #import <TestFramework.h>
 #import <Starboard/SmartTypes.h>
-
 #import <Foundation/Foundation.h>
+
+#import "TestUtils.h"
 
 // TODO: BUG 5403859: Enable ARC on this test file once load order issue is fixed
 
@@ -96,11 +97,18 @@ TEST(NSData, Base64EncodeWithOptions) {
                       base64EncodedStringWithOptions:NSDataBase64Encoding76CharacterLineLength | NSDataBase64EncodingEndLineWithLineFeed]);
 }
 
-TEST(NSData, Base64DecodeWithOptions) {
-    // Invalid input should return nil
-    StrongId<NSData> invalidDecoded = [[[NSData alloc] initWithBase64Encoding:@"%"] autorelease];
-    ASSERT_OBJCEQ(nil, invalidDecoded);
+TEST(NSData, Base64InvalidInitialization) {
+    // Documentation states that invalid input should return nil, but reference platform tests show it returns an empty NSData object
+    StrongId<NSString> invalidString = @"%";
+    StrongId<NSData> invalidDecoded = [[[NSData alloc] initWithBase64Encoding:invalidString] autorelease];
+    ASSERT_OBJCEQ(@"<>", [invalidDecoded description]);
 
+    // Should match documentation and return nil
+    invalidDecoded = [[[NSData alloc] initWithBase64EncodedString:invalidString options:0] autorelease];
+    ASSERT_OBJCEQ(nil, invalidDecoded);
+}
+
+TEST(NSData, Base64DecodeWithOptions) {
     // Basic testing
     testDecode(@"QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
                @"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -176,18 +184,63 @@ TEST(NSData, Base64EncodeDecodeWrappers) {
                       base64EncodedDataWithOptions:NSDataBase64Encoding76CharacterLineLength]);
 }
 
+TEST(NSData, WriteToFile) {
+    // first, write the test string to NSURL which represents as a file
+    // ensure it succeeds
+    const char bytes[] = "Hello world";
+    StrongId<NSData> expectedData = [NSData dataWithBytes:bytes length:std::extent<decltype(bytes)>::value];
+
+    // Create the file or trying to write will fail
+    StrongId<NSString> filePath = @"./Helloworld.txt";
+    SCOPE_DELETE_FILE(filePath);
+
+    NSError* error = nil;
+    EXPECT_TRUE_MSG([expectedData writeToFile:@"./Helloworld.txt" options:0 error:&error], "NSDataWriteToURL should succeed");
+    EXPECT_EQ(nil, error);
+
+    // second, read the file content back, compare with original content
+    // ensure they are equal
+    StrongId<NSData> actualData = [NSData dataWithContentsOfFile:filePath];
+    EXPECT_OBJCEQ_MSG(expectedData, actualData, "Data should be equal");
+}
+
 TEST(NSData, WriteToURL) {
     // first, write the test string to NSURL which represents as a file
     // ensure it succeeds
     const char bytes[] = "Hello world";
     StrongId<NSData> expectedData = [NSData dataWithBytes:bytes length:std::extent<decltype(bytes)>::value];
-    StrongId<NSURL> fileURL = [NSURL fileURLWithPath:@"./Library/Helloworld.txt"];
-    ASSERT_TRUE_MSG([expectedData writeToURL:fileURL options:0 error:nullptr], "NSDataWriteToURL should succeed");
+
+    // Create the file or trying to write will fail
+    StrongId<NSString> filePath = @"./Helloworld.txt";
+    SCOPE_DELETE_FILE(filePath);
+
+    StrongId<NSURL> fileURL = [NSURL fileURLWithPath:filePath];
+    NSError* error = nil;
+    EXPECT_TRUE_MSG([expectedData writeToURL:fileURL options:0 error:&error], "NSDataWriteToURL should succeed");
+    EXPECT_EQ(nil, error);
 
     // second, read the file content back, compare with original content
     // ensure they are equal
     StrongId<NSData> actualData = [NSData dataWithContentsOfFile:[fileURL path]];
-    ASSERT_OBJCEQ_MSG(expectedData, actualData, "Data should be equal");
+    EXPECT_OBJCEQ_MSG(expectedData, actualData, "Data should be equal");
+}
+
+TEST(NSData, WriteToNonexistentDirectory) {
+    // first, write the test string to NSURL which represents as a file
+    // ensure it succeeds
+    const char bytes[] = "Hello world";
+    StrongId<NSData> expectedData = [NSData dataWithBytes:bytes length:std::extent<decltype(bytes)>::value];
+
+    // Create the file or trying to write will fail
+    StrongId<NSString> filePath = @"./NONEXISTENT/Helloworld.txt";
+    SCOPE_DELETE_FILE(filePath);
+
+    StrongId<NSURL> fileURL = [NSURL fileURLWithPath:filePath];
+    NSError* error = nil;
+    EXPECT_FALSE_MSG([expectedData writeToURL:fileURL options:0 error:&error],
+                     "NSDataWriteToURL should fail for nonexistent directory path");
+
+    EXPECT_NE_MSG(nil, error, "NSDataWriteToURL should create an error for failure");
 }
 
 TEST(NSData, MutableDataBasicTests) {
@@ -285,30 +338,30 @@ TEST(NSData, MutableCopyExpandBeyondCapacity) {
 TEST(NSData, Copying_NSMutableData) {
     NSMutableData* mutableData = [NSMutableData dataWithBytes:"hello" length:5];
     NSData* copiedData = [[mutableData copy] autorelease];
-    
+
     // A mutable->immutable copy should result in a different pointer...
     ASSERT_NE(copiedData, mutableData);
     // ...which points to identical data...
     ASSERT_OBJCEQ(copiedData, mutableData);
     // ...but does not reflect mutations...
-    [mutableData replaceBytesInRange:(NSRange){0,1} withBytes:"good" length:4];
+    [mutableData replaceBytesInRange:(NSRange) { 0, 1 } withBytes:"good" length:4];
     ASSERT_OBJCNE(copiedData, mutableData);
 }
 
 TEST(NSData, Copying_CustomBufferWithOwnership) {
     woc::unique_iw<char> backingBuffer(IwStrDup("hello world"));
-    NSData *originalOwningData = [NSData dataWithBytesNoCopy:backingBuffer.release() length:11 freeWhenDone:YES];
+    NSData* originalOwningData = [NSData dataWithBytesNoCopy:backingBuffer.release() length:11 freeWhenDone:YES];
     NSData* copiedData = [[originalOwningData copy] autorelease];
-    
+
     // An owning->immutable copy should result in the same pointer...
     ASSERT_EQ(copiedData, originalOwningData);
 }
 
 TEST(NSData, Copying_CustomBufferWithoutOwnership) {
     woc::unique_iw<char> backingBuffer(IwStrDup("hello world"));
-    NSData *originalNonOwningData = [NSData dataWithBytesNoCopy:backingBuffer.get() length:11 freeWhenDone:NO];
+    NSData* originalNonOwningData = [NSData dataWithBytesNoCopy:backingBuffer.get() length:11 freeWhenDone:NO];
     NSData* copiedData = [[originalNonOwningData copy] autorelease];
-    
+
     // An un-owning->immutable copy should result in a different pointer...
     ASSERT_NE(copiedData, originalNonOwningData);
     // ...which does not reflect changes to the backing buffer...

@@ -16,7 +16,7 @@
 
 #pragma once
 
-@interface UIScrollView()
-- (id)_gestureRecognizerTouchesReached:(id)gesture;
+@interface UIScrollView ()
 - (void)_clampOffset;
+- (BOOL)_isAnimating;
 @end

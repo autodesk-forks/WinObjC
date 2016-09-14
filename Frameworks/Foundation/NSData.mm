@@ -1,6 +1,6 @@
 //******************************************************************************
 //
-// Copyright (c) 2015 Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 //
 // This code is licensed under the MIT License (MIT).
 //
@@ -348,12 +348,14 @@ BASE_CLASS_REQUIRED_IMPLS(NSData, NSDataPrototype, CFDataGetTypeID);
     if (fpOut) {
         EbrFwrite([self bytes], 1, [self length], fpOut);
         EbrFclose(fpOut);
-
-        return TRUE;
-    } else {
-        TraceVerbose(TAG, L"NSData couldn't open %hs for write (with options)", fname);
-        return FALSE;
+        return YES;
     }
+
+    TraceVerbose(TAG, L"NSData couldn't open %hs for write (with options)", fname);
+    if (error) {
+        *error = [NSError errorWithDomain:NSCocoaErrorDomain code:NSFileNoSuchFileError userInfo:@{ NSFilePathErrorKey : filename }];
+    }
+    return NO;
 }
 
 /**
@@ -447,7 +449,12 @@ BASE_CLASS_REQUIRED_IMPLS(NSData, NSDataPrototype, CFDataGetTypeID);
  @Status Interoperable
 */
 - (instancetype)initWithBase64Encoding:(NSString*)base64String {
-    return [self initWithBase64EncodedString:base64String options:0];
+    // Documentation states that invalid input should return nil, but reference platform tests show it returns an empty NSData object
+    auto ret = [self initWithBase64EncodedString:base64String options:0];
+    if (!ret) {
+        ret = [self init];
+    }
+    return ret;
 }
 
 /**
@@ -609,10 +616,7 @@ BASE_CLASS_REQUIRED_IMPLS(NSData, NSDataPrototype, CFDataGetTypeID);
     // length * 2   = 2 chars (hex representation) for each byte
     // length / 4   = spaces - one every 4 bytes
     // 16           = <> and misc
-    // if the length > 1024, describe only the first 512 bytes and the last 512 bytes,
-    // and add a "... " (4 bytes) in the middle
-    const NSUInteger lengthToUse = std::min(1024u, length);
-    const int tmpBufSize = 16 + lengthToUse * 2 + (lengthToUse / 4) + (length > 1024 ? 4 : 0);
+    const int tmpBufSize = 16 + length * 2 + (length / 4);
 
     std::vector<char> tmpBuf(tmpBufSize);
     int tmpBufLen = 0;
@@ -620,16 +624,6 @@ BASE_CLASS_REQUIRED_IMPLS(NSData, NSDataPrototype, CFDataGetTypeID);
     tmpBuf[tmpBufLen++] = '<';
 
     for (auto i = 0; i < length;) {
-        // skip the middle portion, if length > 1024, and go directly to the last 512 bytes
-        if ((length > 1024) && (i == 512)) {
-            tmpBuf[tmpBufLen++] = '.';
-            tmpBuf[tmpBufLen++] = '.';
-            tmpBuf[tmpBufLen++] = '.';
-            tmpBuf[tmpBufLen++] = ' ';
-            i = length - 512;
-            continue;
-        }
-
         int outDigit = ((bytes[i] & 0xF0) >> 4);
         if (outDigit < 10) {
             tmpBuf[tmpBufLen++] = '0' + outDigit;
@@ -644,8 +638,8 @@ BASE_CLASS_REQUIRED_IMPLS(NSData, NSDataPrototype, CFDataGetTypeID);
             tmpBuf[tmpBufLen++] = 'a' + outDigit - 10;
         }
         assert(tmpBufLen < tmpBufSize);
-        i++;
 
+        ++i;
         if ((i % 4) == 0 && i < length) {
             tmpBuf[tmpBufLen++] = ' ';
             assert(tmpBufLen < tmpBufSize);
