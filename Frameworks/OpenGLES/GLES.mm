@@ -748,11 +748,7 @@ EAGL_EXPORT void EXPORT_glTexSubImage2D(GLenum target,
 /**
    @Status Interoperable
 */
-EAGL_EXPORT void EXPORT_glTexStorage2DEXT(GLenum target,
-                                          GLsizei levels,
-										  GLenum internalFormat,
-										  GLsizei width,
-										  GLsizei height) {
+EAGL_EXPORT void EXPORT_glTexStorage2DEXT(GLenum target, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height) {
     glTexStorage2DEXT(target, levels, internalFormat, width, height);
 }
 
@@ -1608,8 +1604,7 @@ EAGL_EXPORT GLboolean EXPORT_glIsVertexArrayOES(GLuint array) {
 /**
    @Public No
 */
-EAGL_EXPORT void EXPORT_glRenderbufferStorageMultisampleANGLE (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
-{
+EAGL_EXPORT void EXPORT_glRenderbufferStorageMultisampleANGLE(
+    GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height) {
     glRenderbufferStorageMultisampleANGLE(target, samples, internalformat, width, height);
 }
-

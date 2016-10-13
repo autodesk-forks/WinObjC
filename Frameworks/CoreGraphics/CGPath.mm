@@ -493,10 +493,9 @@ void CGPathAddPath(CGMutablePathRef path, const CGAffineTransform* m, CGPathRef 
             }
         }
     }
-
-	// we need to re init the elements to setup the pointers propertly
-	for (int i = 0; i < path->_count; i++) {
-		CGPathElementInternal* element = &path->_elements[i];
+    // we need to re init the elements to setup the pointers propertly
+    for (int i = 0; i < path->_count; i++) {
+        CGPathElementInternal* element = &path->_elements[i];
         element->init();
     }
 }
