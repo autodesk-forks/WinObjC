@@ -15,7 +15,6 @@
 //******************************************************************************
 #pragma cone
 
-#import <CoreVideo/CVTime.h>
 #import <QuartzCore/CoreAnimationExport.h>
 #import <ApplicationServices/ApplicationServices.h>
 #import <Foundation/NSObject.h>
