@@ -1,6 +1,6 @@
 ﻿//******************************************************************************
 //
-// Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 //
 // This code is licensed under the MIT License (MIT).
 //
@@ -224,6 +224,13 @@ public:
     }
 
     TEST_METHOD(NSURLSession_DownloadTaskWithURL) {
+// Disable Test on ARM as it tries to hit a real endpoint and download significant data
+// and arm machines may not have a stable ethernet connection like a build server does.
+#ifdef _M_ARM
+        BEGIN_TEST_METHOD_PROPERTIES()
+        TEST_METHOD_PROPERTY(L"ignore", L"true")
+        END_TEST_METHOD_PROPERTIES()
+#endif
         NSURLSessionDownloadTaskWithURL();
     }
 
@@ -232,6 +239,13 @@ public:
     }
 
     TEST_METHOD(NSURLSession_DownloadTaskWithURL_WithCompletionHandler) {
+// Disable Test on ARM as it tries to hit a real endpoint and download significant data
+// and arm machines may not have a stable ethernet connection like a build server does.
+#ifdef _M_ARM
+        BEGIN_TEST_METHOD_PROPERTIES()
+        TEST_METHOD_PROPERTY(L"ignore", L"true")
+        END_TEST_METHOD_PROPERTIES()
+#endif
         NSURLSessionDownloadTaskWithURL_WithCompletionHandler();
     }
 
@@ -441,18 +455,56 @@ class ActivatedAppReceivesToastNotification {
     }
 }; /* class ActivatedAppReceivesToastNotification */
 
+//
+// File Activation Tests
+//
+
+extern void FileActivatedTestForegroundActivation();
+extern void FileActivatedTestForegroundActivationDelegateMethodsCalled();
+
+class FileActivationForegroundActivation {
+public:
+    BEGIN_TEST_CLASS(FileActivationForegroundActivation)
+    TEST_CLASS_PROPERTY(L"RunAs", L"UAP")
+    TEST_CLASS_PROPERTY(L"UAP:Host", L"Xaml")
+    END_TEST_CLASS()
+
+    TEST_CLASS_SETUP(FileActivationForegroundActivationClassSetup) {
+        // The class setup allows us to activate the app in our test method, but can only be done once per class
+        return SUCCEEDED(FrameworkHelper::RunOnUIThread(&FileActivatedTestForegroundActivation));
+    }
+
+    TEST_METHOD_CLEANUP(FileActivationForegroundActivationCleanup) {
+        FunctionalTestCleanupUIApplication();
+        return true;
+    }
+
+    TEST_METHOD(FileActivation_TestForegroundActivationDelegateMethodsCalled) {
+        FileActivatedTestForegroundActivationDelegateMethodsCalled();
+    }
+}; /* class FileActivatedTestForegroundActivation */
+
 // UIKitTests
 //
 extern void UIViewCreate();
 extern void UIViewGetXamlElement();
+
+extern void UIActionSheetCreateXamlElement();
+extern void UIActionSheetGetXamlElement();
+extern void UIActionSheetNilParameters();
+
 extern void UIActivityIndicatorViewCreateXamlElement();
 extern void UIActivityIndicatorViewGetXamlElement();
+
 extern void UIButtonCreateXamlElement();
 extern void UIButtonGetXamlElement();
+
 extern void UIScrollViewCreateXamlElement();
 extern void UIScrollViewGetXamlElement();
+
 extern void UISliderCreateXamlElement();
 extern void UISliderGetXamlElement();
+
 extern void UITextFieldCreateXamlElement();
 extern void UITextFieldGetXamlElement();
 
@@ -478,6 +530,18 @@ public:
 
     TEST_METHOD(UIView_GetXamlElement) {
         UIViewGetXamlElement();
+    }
+
+    TEST_METHOD(UIActionSheet_CreateXamlElement) {
+        UIActionSheetCreateXamlElement();
+    }
+
+    TEST_METHOD(UIActionSheet_GetXamlElement) {
+        UIActionSheetGetXamlElement();
+    }
+
+    TEST_METHOD(UIActionSheet_NilParameters) {
+        UIActionSheetNilParameters();
     }
 
     TEST_METHOD(UIActivityIndicatorView_CreateXamlElement) {
@@ -529,6 +593,7 @@ extern void ProjectionCreateWithTest();
 extern void ProjectionAsyncOnUIThread();
 extern void ProjectionAsyncOnBackgroundThread();
 extern void ProjectionCreateWithARCEnabled();
+extern void ProjectionComposableAttrClass();
 
 class ProjectionTest {
 public:
@@ -564,6 +629,10 @@ public:
 
     TEST_METHOD(ProjectionTest_CreateWithARCEnabled) {
         ProjectionCreateWithARCEnabled();
+    }
+
+    TEST_METHOD(ProjectionTest_ComposableAttrClass) {
+        ProjectionComposableAttrClass();
     }
 
 }; /* class ProjectionTest */

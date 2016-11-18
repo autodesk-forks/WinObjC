@@ -505,7 +505,7 @@ static CGPoint pointFromView(const CGPoint& pt, UIView* viewAddr) {
     }
 }
 
-+ (BOOL)_fireGestures:(id)gestures {
++ (BOOL)_fireGestures:(id)gestures shouldCancelTouches:(BOOL&)shouldCancelTouches {
     bool didRecognize = false;
     int count = [gestures count];
 
@@ -531,6 +531,7 @@ static CGPoint pointFromView(const CGPoint& pt, UIView* viewAddr) {
                     curgesture->_state = UIGestureRecognizerStateChanged;
                 }
                 [curgesture _fire];
+                shouldCancelTouches |= curgesture.cancelsTouchesInView;
                 didRecognize = true;
             }
         }
